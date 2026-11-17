@@ -1,0 +1,374 @@
+/* ============================================================
+   MOVILIDADRD — Sistema de diseño de marca
+   Paleta: carbón #151515 · champagne #C6A56B · blanco · grises
+   Tipografías: Montserrat (display) · Inter (texto)
+   Mobile-first. Bootstrap 5 complementa, no sustituye.
+   ============================================================ */
+
+:root {
+  --mrd-carbon: #151515;
+  --mrd-carbon-2: #292929;
+  --mrd-dorado: #C6A56B;
+  --mrd-dorado-hover: #b3905a;
+  --mrd-dorado-suave: rgba(198, 165, 107, 0.15);
+  --mrd-blanco: #FFFFFF;
+  --mrd-gris-claro: #F4F4F4;
+  --mrd-gris: #6c757d;
+  --mrd-exito: #1e7e34;
+  --mrd-error: #b02a37;
+  --mrd-radio: 12px;
+  --mrd-sombra: 0 10px 30px rgba(0, 0, 0, 0.12);
+  --mrd-sombra-suave: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --mrd-transicion: 0.25s ease;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--mrd-gris-claro);
+  color: var(--mrd-carbon);
+}
+
+h1, h2, h3, h4, .mrd-display {
+  font-family: 'Montserrat', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Botones ---------- */
+.btn-mrd {
+  background: var(--mrd-dorado);
+  border: 1px solid var(--mrd-dorado);
+  color: var(--mrd-carbon);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 8px;
+  padding: 0.75rem 1.6rem;
+  transition: all var(--mrd-transicion);
+}
+.btn-mrd:hover, .btn-mrd:focus {
+  background: var(--mrd-dorado-hover);
+  border-color: var(--mrd-dorado-hover);
+  color: var(--mrd-carbon);
+  transform: translateY(-1px);
+}
+.btn-mrd-outline {
+  background: transparent;
+  border: 1px solid var(--mrd-dorado);
+  color: var(--mrd-dorado);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.75rem 1.6rem;
+  transition: all var(--mrd-transicion);
+}
+.btn-mrd-outline:hover { background: var(--mrd-dorado-suave); color: var(--mrd-dorado); }
+.btn-mrd-dark {
+  background: var(--mrd-carbon);
+  border: 1px solid var(--mrd-carbon);
+  color: var(--mrd-dorado);
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0.75rem 1.6rem;
+}
+.btn-mrd-dark:hover { background: var(--mrd-carbon-2); color: var(--mrd-dorado); }
+
+/* ---------- Navbar ---------- */
+.mrd-navbar {
+  background: rgba(21, 21, 21, 0.96);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(198, 165, 107, 0.25);
+}
+.mrd-navbar .navbar-brand { color: var(--mrd-blanco); font-family: 'Montserrat'; font-weight: 800; letter-spacing: 0.04em; }
+.mrd-navbar .navbar-brand .dorado { color: var(--mrd-dorado); }
+.mrd-navbar .nav-link { color: rgba(255,255,255,0.85); font-weight: 500; }
+.mrd-navbar .nav-link:hover { color: var(--mrd-dorado); }
+.mrd-navbar .navbar-toggler { border-color: var(--mrd-dorado); }
+.mrd-navbar .navbar-toggler-icon { filter: invert(80%) sepia(30%) saturate(400%); }
+
+/* ---------- Hero ---------- */
+.mrd-hero {
+  background:
+    radial-gradient(ellipse at 70% 20%, rgba(198,165,107,0.22), transparent 55%),
+    linear-gradient(160deg, #151515 0%, #1f1b16 60%, #151515 100%);
+  color: var(--mrd-blanco);
+  padding: 5rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.mrd-hero .badge-mrd {
+  background: var(--mrd-dorado-suave);
+  color: var(--mrd-dorado);
+  border: 1px solid rgba(198,165,107,0.4);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.45rem 1rem;
+  border-radius: 100px;
+}
+.mrd-hero h1 { font-size: clamp(2rem, 5.5vw, 3.4rem); line-height: 1.12; }
+.mrd-hero .text-dorado { color: var(--mrd-dorado); }
+.mrd-hero p.lead { color: rgba(255,255,255,0.82); max-width: 34rem; }
+
+/* Tarjeta flotante de código de reserva (mock decorativo de marca) */
+.mrd-hero-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(198,165,107,0.35);
+  border-radius: var(--mrd-radio);
+  padding: 1.4rem;
+  box-shadow: var(--mrd-sombra);
+}
+.mrd-hero-card .mrd-code {
+  font-family: 'Montserrat'; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--mrd-dorado); font-size: 1.15rem;
+}
+.mrd-hero-card hr { border-color: rgba(255,255,255,0.12); }
+
+/* ---------- Secciones ---------- */
+.mrd-seccion { padding: 4.5rem 0; }
+.mrd-seccion-titulo {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  position: relative; display: inline-block; margin-bottom: 0.75rem;
+}
+.mrd-seccion-titulo::after {
+  content: ''; display: block; height: 3px; width: 64px;
+  background: var(--mrd-dorado); margin-top: 0.6rem; border-radius: 2px;
+}
+.mrd-seccion-sub { color: var(--mrd-gris); max-width: 40rem; }
+
+/* ---------- Tarjetas de servicio / vehículo ---------- */
+.mrd-card {
+  background: var(--mrd-blanco);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: var(--mrd-radio);
+  box-shadow: var(--mrd-sombra-suave);
+  transition: transform var(--mrd-transicion), box-shadow var(--mrd-transicion);
+  height: 100%;
+}
+.mrd-card:hover { transform: translateY(-4px); box-shadow: var(--mrd-sombra); }
+.mrd-card .mrd-card-icono {
+  width: 52px; height: 52px; border-radius: 12px;
+  background: var(--mrd-carbon); color: var(--mrd-dorado);
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+}
+.mrd-card h3, .mrd-card h5 { font-size: 1.02rem; margin-bottom: 0.35rem; }
+
+/* ---------- Formularios ---------- */
+.mrd-form {
+  background: var(--mrd-blanco);
+  border-radius: var(--mrd-radio);
+  box-shadow: var(--mrd-sombra);
+  border-top: 4px solid var(--mrd-dorado);
+}
+.form-label { font-weight: 600; font-size: 0.85rem; }
+.form-control, .form-select { border-radius: 8px; border: 1px solid #dee2e6; padding: 0.6rem 0.75rem; }
+.form-control:focus, .form-select:focus {
+  border-color: var(--mrd-dorado);
+  box-shadow: 0 0 0 0.2rem rgba(198,165,107,0.3);
+}
+.form-control.is-invalid { border-color: var(--mrd-error); }
+.mrd-form .form-text { font-size: 0.75rem; }
+
+/* ---------- Panel administrativo / conductor ---------- */
+.mrd-layout { min-height: 100vh; background: var(--mrd-gris-claro); }
+.mrd-sidebar {
+  background: var(--mrd-carbon); color: #d7d7d7; min-height: 100vh;
+  width: 260px; position: fixed; left: 0; top: 0; padding: 1.2rem 0;
+  z-index: 1030; transform: translateX(-100%); transition: transform var(--mrd-transicion);
+}
+.mrd-sidebar.abierto { transform: translateX(0); }
+.mrd-sidebar .mrd-logo-side { padding: 0 1.4rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem; }
+.mrd-sidebar .mrd-logo-side .brand { color: #fff; font-family: Montserrat; font-weight: 800; }
+.mrd-sidebar .mrd-logo-side .brand span { color: var(--mrd-dorado); }
+.mrd-side-link {
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.62rem 1.4rem;
+  color: #b9b9b9; text-decoration: none; font-size: 0.9rem; font-weight: 500;
+  border-left: 3px solid transparent;
+}
+.mrd-side-link:hover { color: var(--mrd-dorado); background: rgba(198,165,107,0.06); }
+.mrd-side-link.activo { color: var(--mrd-dorado); border-left-color: var(--mrd-dorado); background: rgba(198,165,107,0.08); }
+.mrd-main { padding: 1.25rem; }
+@media (min-width: 992px) {
+  .mrd-sidebar { transform: none; position: fixed; }
+  .mrd-main { margin-left: 260px; padding: 2rem; }
+}
+
+/* KPIs */
+.mrd-kpi {
+  background: var(--mrd-blanco); border-radius: var(--mrd-radio); padding: 1.1rem 1.2rem;
+  border-left: 4px solid var(--mrd-dorado); box-shadow: var(--mrd-sombra-suave);
+}
+.mrd-kpi .kpi-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--mrd-gris); font-weight: 600; }
+.mrd-kpi .kpi-valor { font-family: Montserrat; font-weight: 800; font-size: 1.55rem; }
+
+/* Badges de estado */
+.mrd-badge { font-size: 0.68rem; font-weight: 700; padding: 0.35em 0.7em; border-radius: 100px; letter-spacing: 0.05em; text-transform: uppercase; }
+.mrd-badge-pendiente { background: #fff4d6; color: #8a6d00; }
+.mrd-badge-confirmada { background: #d9f2e3; color: #14532d; }
+.mrd-badge-cancelada { background: #fde2e1; color: #7f1d1d; }
+.mrd-badge-info { background: #e2e8f0; color: #1e3a5f; }
+
+/* ---------- Footer ---------- */
+.mrd-footer { background: var(--mrd-carbon); color: rgba(255,255,255,0.75); padding: 3rem 0 1.5rem; font-size: 0.9rem; }
+.mrd-footer a { color: var(--mrd-dorado); text-decoration: none; }
+.mrd-footer a:hover { text-decoration: underline; }
+.mrd-footer .mrd-foot-title { color: #fff; font-family: Montserrat; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.7rem; }
+
+/* Botón flotante WhatsApp */
+.mrd-whatsapp-flotante {
+  position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 1040;
+  width: 60px; height: 60px; border-radius: 50%; background: #25D366; color: #063;
+  display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-decoration: none; transition: transform var(--mrd-transicion);
+}
+.mrd-whatsapp-flotante:hover { transform: scale(1.08); }
+
+/* Estado vacío / pendiente */
+.mrd-vacio { text-align: center; padding: 3rem 1rem; color: var(--mrd-gris); }
+.mrd-vacio i { font-size: 2.5rem; color: var(--mrd-dorado); opacity: 0.7; }
+
+/* Offline banner */
+.mrd-offline-banner {
+  display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 2000;
+  background: var(--mrd-error); color: #fff; text-align: center;
+  font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 600;
+}
+body.sin-conexion .mrd-offline-banner { display: block; }
+
+/* Loader */
+.mrd-spinner {
+  width: 2rem; height: 2rem; border: 3px solid var(--mrd-dorado-suave);
+  border-top-color: var(--mrd-dorado); border-radius: 50%; animation: mrd-spin 0.8s linear infinite;
+}
+@keyframes mrd-spin { to { transform: rotate(360deg); } }
+
+:focus-visible { outline: 3px solid var(--mrd-dorado); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- Tarjeta de asignaci�n / notificaci�n al conductor ----------
+   Inspirada en el patr�n "ticket" (marca + estado + horario + ruta),
+   adaptada a la identidad MovilidadRD. */
+.mrd-asignacion {
+  position: relative;
+  background: linear-gradient(155deg, #1b1814 0%, #151515 55%, #101010 100%);
+  border: 1px solid rgba(198,165,107,.35);
+  border-radius: 16px;
+  overflow: hidden;
+  color: #FFFFFF;
+  display: flex;
+  box-shadow: 0 18px 45px rgba(0,0,0,.45);
+  max-width: 640px;
+}
+.mrd-asignacion::before {
+  content: '';
+  flex: 0 0 7px;
+  background: linear-gradient(180deg, #E4C878 0%, #C6A56B 35%, #8a6f3f 100%);
+}
+.mrd-as-body { padding: 14px 18px 16px; flex: 1; min-width: 0; }
+.mrd-as-brand {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+}
+.mrd-as-marca {
+  font-family: 'Montserrat'; font-weight: 800; font-size: .72rem;
+  letter-spacing: .22em; color: #C6A56B; text-transform: uppercase; white-space: nowrap;
+}
+.mrd-as-tipo {
+  font-size: .62rem; color: #8f8f8f; letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.14); padding: .2em .7em; border-radius: 100px; white-space: nowrap;
+}
+.mrd-as-estado-row { display: flex; align-items: baseline; gap: .65rem; margin-top: .35rem; flex-wrap: wrap; }
+.mrd-as-estado {
+  font-family: 'Montserrat'; font-weight: 800; font-size: 1.38rem; letter-spacing: .02em;
+  color: #FFFFFF; line-height: 1.1;
+}
+.mrd-as-codigo {
+  font-family: 'Montserrat'; font-weight: 700; font-size: 1rem;
+  color: #7d7d7d; letter-spacing: .08em;
+}
+.mrd-as-divider {
+  border: 0; border-top: 1px solid rgba(255,255,255,.16);
+  margin: .7rem 0;
+}
+.mrd-as-grid {
+  display: grid; grid-template-columns: auto 1fr; gap: 0 1.1rem; align-items: stretch;
+}
+@media (max-width: 480px) { .mrd-as-grid { grid-template-columns: 1fr; } }
+.mrd-as-fecha { min-width: 96px; }
+.mrd-as-dia {
+  font-size: .66rem; letter-spacing: .18em; text-transform: uppercase;
+  color: #b9b9b9; font-weight: 600; white-space: nowrap;
+}
+.mrd-as-hora {
+  font-family: 'Montserrat'; font-weight: 800; font-size: 2.35rem; line-height: .98;
+  color: #FFFFFF; margin-top: .2rem;
+}
+.mrd-as-ampm { font-size: .72rem; letter-spacing: .16em; color: #C6A56B; font-weight: 700; margin-top: .2rem; }
+.mrd-as-vuelo { font-size: .68rem; color: #9a9a9a; margin-top: .5rem; line-height: 1.5; }
+.mrd-as-vuelo b { color: #C6A56B; font-weight: 600; }
+.mrd-ruta {
+  position: relative; padding-left: 1.35rem; display: flex; flex-direction: column;
+  justify-content: center; gap: 0; min-height: 92px;
+  border-left: 2px solid transparent;
+}
+.mrd-ruta::before {
+  content: ''; position: absolute; left: 5px; top: 12px; bottom: 12px; width: 2px;
+  background: linear-gradient(180deg, #C6A56B 0%, rgba(198,165,107,.35) 50%, #C6A56B 100%);
+}
+.mrd-ruta-punto { position: relative; padding: .28rem 0; }
+.mrd-ruta-punto::before {
+  content: ''; position: absolute; left: -1.35rem; top: 50%; transform: translate(3px,-50%);
+  width: 11px; height: 11px; border-radius: 50%;
+  background: #151515; border: 2px solid #C6A56B;
+}
+.mrd-ruta-punto:last-child::before { background: #C6A56B; }
+.mrd-ruta-origen {
+  text-transform: uppercase; color: #fff; font-weight: 600;
+  font-size: clamp(.8rem, 2.6vw, .98rem); letter-spacing: .03em; line-height: 1.35;
+}
+.mrd-ruta-dest {
+  text-transform: none; color: rgba(255,255,255,.82); font-weight: 500;
+  font-size: clamp(.78rem, 2.4vw, .92rem); line-height: 1.35;
+}
+.mrd-ruta-dest b { color: #C6A56B; font-weight: 600; }
+.mrd-as-meta {
+  display: flex; flex-wrap: wrap; gap: .4rem 1rem;
+  border-top: 1px solid rgba(255,255,255,.12); margin-top: .7rem; padding-top: .6rem;
+  font-size: .72rem; color: #b9b9b9;
+}
+.mrd-as-meta i { color: #C6A56B; margin-right: .3rem; }
+.mrd-as-acciones { display: flex; gap: .5rem; margin-top: .7rem; flex-wrap: wrap; }
+.mrd-as-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-family: 'Inter'; font-weight: 600; font-size: .78rem;
+  border-radius: 8px; padding: .5rem 1rem; text-decoration: none; border: 1px solid transparent;
+}
+.mrd-as-btn-aceptar { background: #C6A56B; color: #151515; }
+.mrd-as-btn-aceptar:hover { background: #b3905a; color: #151515; }
+.mrd-as-btn-rechazar { background: transparent; color: #d8d8d8; border-color: rgba(255,255,255,.25); }
+.mrd-as-btn-rechazar:hover { border-color: #C6A56B; color: #C6A56B; }
+.mrd-as-btn-mapa { background: #222; color: #fff; border-color: rgba(255,255,255,.12); }
+.mrd-as-btn-mapa:hover { border-color: #C6A56B; color: #C6A56B; }
+
+/* ---------- Tablas del panel admin ---------- */
+.mrd-tabla-wrap { overflow-x: auto; }
+.mrd-tabla { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.mrd-tabla thead th {
+  text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em;
+  color: #6c757d; border-bottom: 2px solid var(--mrd-carbon); padding: .5rem .6rem; white-space: nowrap;
+}
+.mrd-tabla tbody td { padding: .5rem .6rem; border-bottom: 1px solid #e7e4de; vertical-align: middle; }
+.mrd-tabla tbody tr:hover { background: var(--mrd-dorado-suave); }
+.mrd-tabla .btn-xs { padding: .2rem .5rem; font-size: .75rem; border-radius: 6px; }
+.mrd-filtros { background: var(--mrd-blanco); border-radius: var(--mrd-radio); padding: .9rem; box-shadow: var(--mrd-sombra-suave); }
+.mrd-filtros .form-control, .mrd-filtros .form-select { font-size: .85rem; padding: .4rem .6rem; }
+.mrd-paginacion { display: flex; gap: .5rem; align-items: center; justify-content: flex-end; margin-top: .75rem; font-size: .82rem; color: var(--mrd-gris); }
+.mrd-check-item { display: flex; align-items: center; gap: .4rem; }
+
+/* ---------- Tarjetas de despacho ---------- */
+.mrd-despacho-card {
+  background: #FFFFFF; border: 1px solid rgba(0,0,0,.07); border-left: 5px solid var(--mrd-dorado);
+  border-radius: 10px; padding: .65rem .8rem; cursor: pointer; text-align: left; width: 100%;
+  color: var(--mrd-carbon); font: inherit; transition: all var(--mrd-transicion); box-shadow: var(--mrd-sombra-suave);
+}
+.mrd-despacho-card:hover { transform: translateY(-2px); box-shadow: var(--mrd-sombra); }
+.mrd-despacho-card.seleccionada { border-color: var(--mrd-dorado); box-shadow: 0 0 0 2px var(--mrd-dorado); }

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#151515">
+<title>Panel Administrativo — MovilidadRD</title>
+<link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="robots" content="noindex,nofollow">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/brand.css">
+</head>
+<body class="mrd-layout">
+
+<!-- ══════════ VISTA LOGIN ══════════ -->
+<div id="vistaLogin" class="d-flex align-items-center justify-content-center" style="min-height:100vh; background: radial-gradient(ellipse at 50% 0%, #221f1a, #151515);">
+  <div class="mrd-form p-4 p-md-5" style="max-width:26rem; width:100%; margin:1rem;">
+    <img src="assets/icons/logo-horizontal.svg" alt="MovilidadRD" height="52" class="mb-4">
+    <h1 class="h5 mb-1">Panel administrativo</h1>
+    <p class="text-muted small mb-4">Acceso exclusivo para personal autorizado.</p>
+    <form id="formLogin" novalidate>
+      <label class="form-label" for="loginEmail">Correo</label>
+      <input class="form-control mb-3" id="loginEmail" type="email" required autocomplete="username" placeholder="admin@movilidadrd.com">
+      <label class="form-label" for="loginPass">Contraseña</label>
+      <input class="form-control mb-3" id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••••">
+      <button type="submit" class="btn btn-mrd w-100" id="btnLogin"><i class="bi bi-box-arrow-in-right me-1"></i>Entrar</button>
+      <div class="alert alert-danger d-none mt-3 mb-0 small" id="loginError" role="alert"></div>
+    </form>
+    <a href="index.html" class="d-block text-center small mt-4 text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al sitio público</a>
+  </div>
+</div>
+
+<!-- ══════════ VISTA PANEL ══════════ -->
+<div id="vistaPanel" class="d-none">
+  <aside class="mrd-sidebar" id="barraLateral" aria-label="Menú administrativo">
+    <div class="mrd-logo-side">
+      <div class="brand h5 mb-0">MOVILIDAD<span>RD</span></div>
+      <div class="small" style="color:#8a8a8a;">Panel administrativo</div>
+    </div>
+    <nav id="menuLateral" class="d-flex flex-column"></nav>
+    <div class="px-3 mt-3 pt-3 border-top border-secondary border-opacity-25">
+      <div class="small text-truncate" id="usuarioActual" style="color:#C6A56B;"></div>
+      <button class="btn btn-sm btn-outline-light w-100 mt-2" id="btnSalir"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <div class="mrd-main">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-dark d-lg-none" id="btnAbrirMenu" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
+        <div>
+          <h1 class="h4 mb-0" id="tituloSeccion">Dashboard</h1>
+          <div class="small text-muted" id="estadoServidor">Verificando servidor…</div>
+        </div>
+      </div>
+      <button class="btn btn-outline-secondary btn-sm" id="btnRefrescar" title="Recargar sección y servidor"><i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+
+    <!-- ── Dashboard ── -->
+    <section id="seccion-dashboard" class="mrd-seccion-panel">
+      <div class="row g-3" id="kpis"></div>
+      <div class="mrd-form p-4 mt-4">
+        <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Estado del sistema</h2>
+        <dl class="row mb-0 small" id="estadoSistema"></dl>
+      </div>
+      <div class="alert alert-warning mt-4 d-none" id="avisoTarifasEjemplo" role="status">
+        <i class="bi bi-exclamation-triangle me-1"></i>Hay tarifas marcadas como <strong>ES_EJEMPLO</strong> activas. Cámbiala por tus tarifas reales en la sección <strong>Tarifas</strong>.
+      </div>
+    </section>
+
+    <!-- ── Reservaciones ── -->
+    <section id="seccion-reservaciones" class="mrd-seccion-panel d-none">
+      <form class="mrd-filtros row g-2" id="formFiltros">
+        <div class="col-6 col-md-3"><input class="form-control" id="fQ" placeholder="Código, cliente, teléfono…"></div>
+        <div class="col-6 col-md-2"><select class="form-select" id="fEstado"><option value="">Todos los estados</option><option>PENDIENTE</option><option>COTIZADA</option><option>CONFIRMADA</option><option>ASIGNADA</option><option>EN_CURSO</option><option>COMPLETADA</option><option>CANCELADA</option><option>RECHAZADA</option></select></div>
+        <div class="col-6 col-md-2"><select class="form-select" id="fTipo"><option value="">Todos los tipos</option><option>AEROPUERTO</option><option>INTERIOR</option><option>EJECUTIVO</option><option>TURISTICO</option><option>POR_HORAS</option><option>LOCAL</option></select></div>
+        <div class="col-6 col-md-2"><input class="form-control" id="fDesde" placeholder="Desde DD/MM/AAAA" inputmode="numeric"></div>
+        <div class="col-6 col-md-2"><input class="form-control" id="fHasta" placeholder="Hasta DD/MM/AAAA" inputmode="numeric"></div>
+        <div class="col-6 col-md-1 d-grid"><button class="btn btn-mrd-dark" type="submit" title="Filtrar"><i class="bi bi-funnel"></i></button></div>
+      </form>
+      <div class="d-flex justify-content-between align-items-center mt-3 mb-2 flex-wrap gap-2">
+        <div class="small text-muted" id="totalReservas">—</div>
+        <button class="btn btn-outline-dark btn-sm" id="btnExportarCSV"><i class="bi bi-filetype-csv me-1"></i>Exportar CSV</button>
+      </div>
+      <div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaReservas"><thead></thead><tbody></tbody></table></div>
+      <div class="mrd-paginacion"><button class="btn btn-sm btn-outline-secondary" id="btnPagPrev">‹ Anterior</button><span id="paginaInfo">—</span><button class="btn btn-sm btn-outline-secondary" id="btnPagNext">Siguiente ›</button></div>
+    </section>
+
+    <!-- ── Tarifas ── -->
+    <section id="seccion-tarifas" class="mrd-seccion-panel d-none">
+      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+        <p class="small text-muted mb-0">Las tarifas marcadas <span class="badge text-bg-warning">EJEMPLO</span> son semillas: cámbialas o desactívalas antes de operar.</p>
+        <button class="btn btn-mrd btn-sm" id="btnNuevaTarifa"><i class="bi bi-plus-lg me-1"></i>Nueva tarifa</button>
+      </div>
+      <div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaTarifas"><thead></thead><tbody></tbody></table></div>
+    </section>
+
+    <!-- ── Viajes / Conductores / Vehículos / Clientes / Destinos (lectura) ── -->
+    <section id="seccion-despacho" class="mrd-seccion-panel d-none">
+      <div class="row g-3">
+        <div class="col-lg-5">
+          <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Reservas por despachar</h2>
+          <div id="despachoLista" class="mt-2 d-flex flex-column gap-2"></div>
+        </div>
+        <div class="col-lg-7">
+          <div class="mrd-vacio" id="despachoVacio"><i class="bi bi-hand-index-thumb d-block mb-2"></i><p class="mb-0">Selecciona una reserva de la lista para asignar conductor y vehículo.</p></div>
+          <div class="d-none" id="despachoDetalle">
+            <div id="despachoTicket"></div>
+            <div class="mrd-form p-3 mt-3">
+              <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Asignar conductor y vehículo</h3>
+              <label class="form-label" for="despachoConductor">Conductor autorizado disponible *</label>
+              <select class="form-select" id="despachoConductor"></select>
+              <label class="form-label mt-2" for="despachoVehiculo">Vehículo autorizado disponible *</label>
+              <select class="form-select" id="despachoVehiculo"></select>
+              <label class="form-label mt-2" for="despachoInstrucciones">Instrucciones para el conductor (opcional)</label>
+              <textarea class="form-control" id="despachoInstrucciones" rows="2" maxlength="500" placeholder="Ej. Llamar al cliente al llegar a la puerta B, envío de invoice por correo…"></textarea>
+              <div class="text-muted small mt-2" id="despachoInfoDisponibilidad"></div>
+              <div class="d-flex align-items-center gap-3 mt-3 flex-wrap">
+                <button class="btn btn-mrd" id="btnAsignarViaje"><i class="bi bi-check2-circle me-1"></i>Asignar viaje</button>
+                <span class="small text-muted">Validación en vivo: solape, separación, capacidad, categoría y autorización.</span>
+              </div>
+              <div class="alert alert-danger d-none mt-3 small" id="despachoError" role="alert"></div>
+              <div class="alert alert-success d-none mt-3 small" id="despachoExito" role="status">
+                <div class="fw-bold mb-1"><i class="bi bi-check-circle me-1"></i>Viaje asignado</div>
+                <div id="despachoExitoDetalle"></div>
+                <a class="btn btn-success btn-sm mt-2" id="despachoEnlaceConductor" href="#" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i>Avisar al conductor por WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Viajes / Conductores / Vehículos / Clientes / Destinos (lectura) ── -->
+    <section id="seccion-viajes" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaViajes"><thead></thead><tbody></tbody></table></div><p class="small text-muted mt-2">El despacho y la asignación en vivo llegan en la Fase 5.</p></section>
+    <section id="seccion-conductores" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaConductores"><thead></thead><tbody></tbody></table></div></section>
+    <section id="seccion-vehiculos" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaVehiculos"><thead></thead><tbody></tbody></table></div></section>
+    <section id="seccion-clientes" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaClientes"><thead></thead><tbody></tbody></table></div></section>
+    <section id="seccion-destinos" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaDestinos"><thead></thead><tbody></tbody></table></div></section>
+
+    <!-- ── Notificaciones ── -->
+    <section id="seccion-notificaciones" class="mrd-seccion-panel d-none"><div class="mrd-form p-3" id="listaNotificaciones"></div></section>
+
+    <!-- ── Reportes ── -->
+    <section id="seccion-reportes" class="mrd-seccion-panel d-none">
+      <div class="mrd-filtros row g-2 align-items-end">
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="rpTipo">Tipo de reporte</label>
+          <select class="form-select" id="rpTipo">
+            <option value="ingresos">Ingresos</option>
+            <option value="viajes">Viajes</option>
+            <option value="conductores">Conductores</option>
+            <option value="gastos">Gastos</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2"><label class="form-label" for="rpDesde">Desde</label><input class="form-control" id="rpDesde" inputmode="numeric" placeholder="DD/MM/AAAA"></div>
+        <div class="col-6 col-md-2"><label class="form-label" for="rpHasta">Hasta</label><input class="form-control" id="rpHasta" inputmode="numeric" placeholder="DD/MM/AAAA"></div>
+        <div class="col-6 col-md-2 d-grid"><button class="btn btn-mrd" id="btnGenerarReporte"><i class="bi bi-play-fill me-1"></i>Generar</button></div>
+        <div class="col-6 col-md-2 d-grid"><button class="btn btn-outline-dark" id="btnDescargarReporte" disabled><i class="bi bi-download me-1"></i>Descargar CSV</button></div>
+      </div>
+      <div class="row g-2 mt-3" id="rpResumen"></div>
+      <div class="mrd-form p-2 mrd-tabla-wrap mt-3"><table class="mrd-tabla" id="tablaReporte"><thead></thead><tbody></tbody></table></div>
+      <p class="small text-muted mt-2">Rango predeterminado: últimos 30 días. Exporta en Excel con separador <code>;</code> y BOM UTF-8.</p>
+    </section>
+
+    <!-- ── Pagos ── -->
+    <section id="seccion-pagos" class="mrd-seccion-panel d-none">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <form id="formRegistrarPago" class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-cash-coin me-1"></i>Registrar pago</h2>
+            <label class="form-label" for="pgCodigo">Código de reserva *</label>
+            <input class="form-control" id="pgCodigo" placeholder="MRD-2026-00001" required>
+            <label class="form-label mt-2" for="pgTipo">Tipo *</label>
+            <select class="form-select" id="pgTipo" required><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="ANTICIPO">Anticipo</option><option value="PARCIAL">Pago parcial</option><option value="COMPLETO">Pago completo</option></select>
+            <label class="form-label mt-2" for="pgMonto">Monto RD$ *</label>
+            <input class="form-control" id="pgMonto" type="number" min="1" step="0.01" required>
+            <label class="form-label mt-2" for="pgReferencia">Referencia (N.º transferencia, opcional)</label>
+            <input class="form-control" id="pgReferencia" placeholder="Ej. 0012345678">
+            <label class="form-label mt-2" for="pgNotas">Notas</label>
+            <input class="form-control" id="pgNotas">
+            <button class="btn btn-mrd w-100 mt-3" type="submit"><i class="bi bi-check-lg me-1"></i>Registrar pago</button>
+            <div class="alert alert-danger d-none mt-2 small" id="pgError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="pgExito" role="status"></div>
+          </form>
+        </div>
+        <div class="col-lg-8"><div class="small text-muted mb-1">Últimos pagos</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaPagos"><thead></thead><tbody></tbody></table></div></div>
+      </div>
+    </section>
+
+    <!-- ── Gastos ── -->
+    <section id="seccion-gastos" class="mrd-seccion-panel d-none">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <form id="formRegistrarGasto" class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-receipt me-1"></i>Registrar gasto</h2>
+            <label class="form-label" for="gsCodigo">Código de reserva <span class="text-muted fw-normal">(opcional)</span></label>
+            <input class="form-control" id="gsCodigo" placeholder="MRD-2026-00001">
+            <label class="form-label mt-2" for="gsTipo">Tipo *</label>
+            <select class="form-select" id="gsTipo" required><option value="COMBUSTIBLE">Combustible</option><option value="PEAJE">Peaje</option><option value="PARQUEO">Parqueo</option><option value="MANTENIMIENTO">Mantenimiento</option><option value="OTRO">Otro</option></select>
+            <label class="form-label mt-2" for="gsMonto">Monto RD$ *</label>
+            <input class="form-control" id="gsMonto" type="number" min="1" step="0.01" required>
+            <label class="form-label mt-2" for="gsNotas">Notas</label>
+            <input class="form-control" id="gsNotas">
+            <button class="btn btn-mrd w-100 mt-3" type="submit"><i class="bi bi-check-lg me-1"></i>Registrar gasto</button>
+            <div class="alert alert-danger d-none mt-2 small" id="gsError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="gsExito" role="status"></div>
+          </form>
+        </div>
+        <div class="col-lg-8"><div class="small text-muted mb-1">Últimos gastos</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaGastos"><thead></thead><tbody></tbody></table></div></div>
+      </div>
+    </section>
+
+    <!-- ── Comisiones ── -->
+    <section id="seccion-comisiones" class="mrd-seccion-panel d-none">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-percent me-1"></i>Calcular comisión</h2>
+            <label class="form-label" for="cmCodigo">Código de reserva *</label>
+            <input class="form-control" id="cmCodigo" placeholder="MRD-2026-00001">
+            <button class="btn btn-mrd w-100 mt-2" id="btnCalcularComision" type="button"><i class="bi bi-calculator me-1"></i>Calcular</button>
+            <div class="alert alert-danger d-none mt-2 small" id="cmError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="cmExito" role="status"></div>
+          </div>
+          <div class="mrd-filtros mt-3">
+            <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Resultado operativo del viaje</h3>
+            <label class="form-label" for="roCodigo">Código de reserva</label>
+            <input class="form-control" id="roCodigo" placeholder="MRD-2026-00001">
+            <button class="btn btn-mrd-dark w-100 mt-2" id="btnResultadoViaje" type="button"><i class="bi bi-graph-up me-1"></i>Ver resultado</button>
+            <dl class="row small mt-3 mb-0" id="roResultado"></dl>
+          </div>
+        </div>
+        <div class="col-lg-8"><div class="small text-muted mb-1">Comisiones calculadas (pendientes y pagadas)</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaComisiones"><thead></thead><tbody></tbody></table></div></div>
+      </div>
+    </section>
+
+    <!-- ── Auditoría (SUPERADMIN) ── -->
+    <section id="seccion-auditoria" class="mrd-seccion-panel d-none">
+      <form class="mrd-filtros row g-2 align-items-end" id="formFiltrosAuditoria">
+        <div class="col-8 col-md-4"><label class="form-label" for="auAccion">Filtrar por acción</label><input class="form-control" id="auAccion" placeholder="Ej. ASIGNAR, PAGO, CANCELADA…"></div>
+        <div class="col-4 col-md-2 d-grid"><button class="btn btn-mrd-dark" type="submit"><i class="bi bi-funnel me-1"></i>Filtrar</button></div>
+      </form>
+      <p class="small text-muted mt-2 mb-1">Últimos 100 eventos · acceso solo SUPERADMIN.</p>
+      <div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaAuditoria"><thead></thead><tbody></tbody></table></div>
+    </section>
+
+    <!-- ── Configuración (lectura) ── -->
+    <section id="seccion-configuracion" class="mrd-seccion-panel d-none"><div class="mrd-form p-3 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaConfiguracion"><thead></thead><tbody></tbody></table></div><p class="small text-muted mt-2">Para cambiar una clave: edita la hoja CONFIGURACION directamente o pide a tu desarrollador (escritura de claves habilitada en Fase 9).</p></section>
+
+    <!-- ── Usuarios ── -->
+    <section id="seccion-usuarios" class="mrd-seccion-panel d-none">
+      <div class="mrd-form p-4">
+        <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Tu sesión actual</h2>
+        <dl class="row small mb-3" id="infoSesion"></dl>
+        <hr>
+        <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Alta de usuarios</h3>
+        <ol class="small">
+          <li>Firebase Console → Authentication → Users → Add user (correo + contraseña).</li>
+          <li>Copia el UID del usuario.</li>
+          <li>En la hoja <strong>USUARIOS</strong>: ID (UUID), UID_FIREBASE, EMAIL (minúsculas), NOMBRE, ROL (<code>SUPERADMIN</code>/<code>ADMIN</code>/<code>CONDUCTOR</code>), CONDUCTOR_ID (solo CONDUCTOR), ACTIVO=<code>TRUE</code>.</li>
+        </ol>
+        <p class="small text-muted mb-0">La administración de usuarios desde el panel llega en la Fase 9.</p>
+      </div>
+    </section>
+
+    <!-- ── Módulo genérico (pendientes de fases 5/7/9) ── -->
+    <section id="seccion-generica" class="mrd-seccion-panel d-none">
+      <div class="mrd-vacio"><i class="bi bi-tools d-block mb-2"></i><h2 class="h5" id="genericoTitulo">Módulo</h2><p class="mb-1" id="genericoDescripcion"></p><p class="small text-muted" id="genericoFase"></p></div>
+    </section>
+  </div>
+</div>
+
+<!-- ══════════ MODAL RESERVA (detalle / cotizar / confirmar) ══════════ -->
+<div class="modal fade" id="modalReserva" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="background:#1b1814; color:#eee; border:1px solid rgba(198,165,107,.35);">
+      <div class="modal-header border-secondary">
+        <h2 class="modal-title h6"><span class="text-dorado" id="mrCodigo">—</span> · Detalle de reserva</h2>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <dl class="row small mb-2" id="mrDetalle"></dl>
+        <hr class="border-secondary">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-5"><label class="form-label" for="mrMonto">Cotización manual (RD$)</label><input type="number" min="1" step="0.01" class="form-control" id="mrMonto" placeholder="Ej. 3500"></div>
+          <div class="col-md-5"><label class="form-label" for="mrNota">Nota (opcional)</label><input type="text" class="form-control" id="mrNota" placeholder="Motivo de la cotización"></div>
+          <div class="col-md-2 d-grid"><button class="btn btn-mrd" id="mrBtnCotizar"><i class="bi bi-cash-coin me-1"></i>Cotizar</button></div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <button class="btn btn-success btn-sm" id="mrBtnConfirmar"><i class="bi bi-check-lg me-1"></i>Confirmar</button>
+          <button class="btn btn-outline-warning btn-sm" id="mrBtnRechazar"><i class="bi bi-x-lg me-1"></i>Rechazar</button>
+          <button class="btn btn-outline-danger btn-sm" id="mrBtnCancelar"><i class="bi bi-trash me-1"></i>Cancelar</button>
+        </div>
+        <div class="alert alert-info d-none mt-3 small" id="mrEnlaceBox" role="status"><a id="mrEnlace" href="#" target="_blank" rel="noopener" class="alert-link">Abrir WhatsApp con el cliente →</a></div>
+        <div class="alert alert-danger d-none mt-3 small" id="mrError" role="alert"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL TARIFA ══════════ -->
+<div class="modal fade" id="modalTarifa" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#1b1814; color:#eee; border:1px solid rgba(198,165,107,.35);">
+      <div class="modal-header border-secondary">
+        <h2 class="modal-title h6">Tarifa</h2>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tfId">
+        <div class="row g-2">
+          <div class="col-6"><label class="form-label" for="tfOrigen">Origen *</label><input class="form-control" id="tfOrigen" required></div>
+          <div class="col-6"><label class="form-label" for="tfDestino">Destino *</label><input class="form-control" id="tfDestino" required></div>
+          <div class="col-6"><label class="form-label" for="tfCategoria">Categoría</label><select class="form-select" id="tfCategoria"><option value="">Todas</option><option>SEDAN</option><option>SUV</option><option>VAN</option><option>LUXURY</option><option>MINIBUS</option></select></div>
+          <div class="col-6"><label class="form-label" for="tfTipo">Tipo</label><select class="form-select" id="tfTipo"><option value="FIJA">Fija (precio directo)</option><option value="KILOMETRAJE">Por kilometraje</option></select></div>
+          <div class="col-6" id="tfCajaPrecio"><label class="form-label" for="tfPrecio">Precio RD$ *</label><input type="number" min="1" step="0.01" class="form-control" id="tfPrecio"></div>
+          <div class="col-4 d-none" id="tfCajaKm"><label class="form-label" for="tfKm">Km est. *</label><input type="number" min="1" step="1" class="form-control" id="tfKm"></div>
+          <div class="col-4 d-none" id="tfCajaBase"><label class="form-label" for="tfBase">Base RD$</label><input type="number" min="0" step="0.01" class="form-control" id="tfBase"></div>
+          <div class="col-4 d-none" id="tfCajaPrecioKm"><label class="form-label" for="tfPrecioKm">RD$/km *</label><input type="number" min="0" step="0.01" class="form-control" id="tfPrecioKm"></div>
+          <div class="col-6"><label class="form-label" for="tfVigDesde">Vigente desde</label><input class="form-control" id="tfVigDesde" placeholder="DD/MM/AAAA"></div>
+          <div class="col-6"><label class="form-label" for="tfVigHasta">Vigente hasta</label><input class="form-control" id="tfVigHasta" placeholder="DD/MM/AAAA"></div>
+        </div>
+        <div class="alert alert-danger d-none mt-3 small" id="tfError" role="alert"></div>
+      </div>
+      <div class="modal-footer border-secondary"><button class="btn btn-mrd" id="tfGuardar"><i class="bi bi-save me-1"></i>Guardar tarifa</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js" onerror="console.warn('js/config.js no encontrado')"></script>
+<script src="js/api.js"></script>
+<script src="js/firebase-init.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

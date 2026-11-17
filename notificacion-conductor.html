@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notificación de asignación — MovilidadRD (vista previa de diseño)</title>
+<link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/brand.css">
+<style>
+  body { background: #0d0d0d; padding: 2rem 1rem 4rem; }
+  .marco { max-width: 1180px; margin: 0 auto; }
+  .rotulo { color:#C6A56B; font-family:'Montserrat'; font-weight:700; letter-spacing:.2em; font-size:.7rem; text-transform:uppercase; }
+  .nota { color:#8a8a8a; font-size:.8rem; }
+</style>
+</head>
+<body>
+<div class="marco">
+  <p class="rotulo mb-1">MovilidadRD · Sistema de despacho</p>
+  <h1 style="color:#fff; font-family:'Montserrat'; font-size:1.4rem; font-weight:800;">Notificación de asignación al conductor</h1>
+  <p class="nota mb-4">Vista previa del componente. Datos de ejemplo ilustrativos (<strong>EJEMPLO-MOVILIDADRD</strong>), no corresponden a un servicio real.</p>
+
+  <!-- ════ ESTADO 1 — Sin asignar (vista del despachador) ════ -->
+  <p class="rotulo mt-4">1 · Bandeja de despacho — pendiente de asignar</p>
+  <div class="mrd-asignacion mt-2" role="group" aria-label="Viaje sin asignar MRD-2026-00042">
+    <div class="mrd-as-body">
+      <div class="mrd-as-brand">
+        <span class="mrd-as-marca">Movilidad<span style="color:#fff">RD</span></span>
+        <span class="mrd-as-tipo">Ejecutivo</span>
+      </div>
+      <div class="mrd-as-estado-row">
+        <span class="mrd-as-estado" style="color:#E4C878;">SIN ASIGNAR</span>
+        <span class="mrd-as-codigo">#MRD-2026-00042</span>
+      </div>
+      <hr class="mrd-as-divider">
+      <div class="mrd-as-grid">
+        <div class="mrd-as-fecha">
+          <div class="mrd-as-dia">Vie, 20 Nov</div>
+          <div class="mrd-as-hora">07:00</div>
+          <div class="mrd-as-ampm">AM · Recogida</div>
+          <div class="mrd-as-vuelo"><b>AA&nbsp;1234</b> · American<br>Terminal B</div>
+        </div>
+        <div class="mrd-ruta">
+          <div class="mrd-ruta-punto"><div class="mrd-ruta-origen">Aeropuerto Las Américas (SDQ)</div></div>
+          <div class="mrd-ruta-punto"><div class="mrd-ruta-dest">Santiago de los Caballeros · <b>centro histórico</b></div></div>
+        </div>
+      </div>
+      <div class="mrd-as-meta">
+        <span><i class="bi bi-person"></i>María Fernández</span>
+        <span><i class="bi bi-people"></i>3 pasajeros</span>
+        <span><i class="bi bi-luggage"></i>2 maletas</span>
+        <span><i class="bi bi-car-front"></i>SUV</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ ESTADO 2 — Asignado (lo que recibe el conductor) ════ -->
+  <p class="rotulo mt-5">2 · Lo que recibe el conductor</p>
+  <div class="mrd-asignacion mt-2" role="group" aria-label="Viaje asignado MRD-2026-00042">
+    <div class="mrd-as-body">
+      <div class="mrd-as-brand">
+        <span class="mrd-as-marca">Movilidad<span style="color:#fff">RD</span></span>
+        <span class="mrd-as-tipo">Aeroportuario</span>
+      </div>
+      <div class="mrd-as-estado-row">
+        <span class="mrd-as-estado">VIAJE ASIGNADO</span>
+        <span class="mrd-as-codigo">#MRD-2026-00042</span>
+      </div>
+      <hr class="mrd-as-divider">
+      <div class="mrd-as-grid">
+        <div class="mrd-as-fecha">
+          <div class="mrd-as-dia">Vie, 20 Nov</div>
+          <div class="mrd-as-hora">07:00</div>
+          <div class="mrd-as-ampm">AM · Recogida</div>
+          <div class="mrd-as-vuelo"><b>AA&nbsp;1234</b> · American<br>Vuelo a las 09:30</div>
+        </div>
+        <div class="mrd-ruta">
+          <div class="mrd-ruta-punto"><div class="mrd-ruta-origen">Aeropuerto Las Américas (SDQ)</div></div>
+          <div class="mrd-ruta-punto"><div class="mrd-ruta-dest">Santiago de los Caballeros · <b>centro histórico</b></div></div>
+        </div>
+      </div>
+      <div class="mrd-as-meta">
+        <span><i class="bi bi-person"></i>María Fernández</span>
+        <span><i class="bi bi-people"></i>3 pasajeros</span>
+        <span><i class="bi bi-luggage"></i>2 maletas</span>
+        <span><i class="bi bi-whatsapp"></i>809-555-0142</span>
+      </div>
+      <div class="mrd-as-acciones">
+        <a class="mrd-as-btn mrd-as-btn-aceptar" href="#" onclick="return false"><i class="bi bi-check-lg"></i>Aceptar viaje</a>
+        <a class="mrd-as-btn mrd-as-btn-rechazar" href="#" onclick="return false"><i class="bi bi-x-lg"></i>Rechazar</a>
+        <a class="mrd-as-btn mrd-as-btn-mapa" href="https://www.google.com/maps/search/?api=1&query=Aeropuerto+Las+Americas" target="_blank" rel="noopener"><i class="bi bi-map"></i>Navegar</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ ESTADO 3 — Versión móvil (como la ve el conductor en su teléfono) ════ -->
+  <p class="rotulo mt-5">3 · Vista móvil (portal del conductor)</p>
+  <div class="mt-2" style="max-width:380px;">
+    <div class="mrd-asignacion" style="max-width:none;" role="group" aria-label="Vista móvil de asignación">
+      <div class="mrd-as-body">
+        <div class="mrd-as-brand">
+          <span class="mrd-as-marca">Movilidad<span style="color:#fff">RD</span></span>
+          <span class="mrd-as-tipo">Aeroportuario</span>
+        </div>
+        <div class="mrd-as-estado-row">
+          <span class="mrd-as-estado" style="font-size:1.15rem;">VIAJE ASIGNADO</span>
+          <span class="mrd-as-codigo" style="font-size:.82rem;">#MRD-2026-00042</span>
+        </div>
+        <hr class="mrd-as-divider">
+        <div class="mrd-as-grid" style="grid-template-columns:auto 1fr;">
+          <div class="mrd-as-fecha">
+            <div class="mrd-as-dia">Vie, 20 Nov</div>
+            <div class="mrd-as-hora" style="font-size:1.9rem;">07:00</div>
+            <div class="mrd-as-ampm">AM</div>
+          </div>
+          <div class="mrd-ruta" style="min-height:70px;">
+            <div class="mrd-ruta-punto"><div class="mrd-ruta-origen" style="font-size:.72rem;">Aeropuerto Las Américas</div></div>
+            <div class="mrd-ruta-punto"><div class="mrd-ruta-dest" style="font-size:.72rem;">Santiago de los Caballeros</div></div>
+          </div>
+        </div>
+        <div class="mrd-as-meta" style="font-size:.68rem;">
+          <span><i class="bi bi-people"></i>3</span>
+          <span><i class="bi bi-luggage"></i>2</span>
+          <span><i class="bi bi-whatsapp"></i>809-555-0142</span>
+        </div>
+        <div class="mrd-as-acciones">
+          <a class="mrd-as-btn mrd-as-btn-aceptar" href="#" onclick="return false"><i class="bi bi-check-lg"></i>Aceptar</a>
+          <a class="mrd-as-btn mrd-as-btn-rechazar" href="#" onclick="return false"><i class="bi bi-x-lg"></i>Rechazar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ Versión texto para WhatsApp ════ -->
+  <p class="rotulo mt-5">4 · Aviso por WhatsApp (mismo contenido, canal texto)</p>
+  <div class="mt-2" style="background:#1f2c24; border-radius:12px; padding:1rem 1.1rem; max-width:420px; border:1px solid rgba(255,255,255,.08);">
+    <pre style="color:#e8f5ec; font-family:'Inter'; font-size:.8rem; white-space:pre-wrap; margin:0;">🚗 <b>MOVILIDADRD — VIAJE ASIGNADO</b> #MRD-2026-00042
+
+VIE 20 NOV · 07:00 AM · Recogida
+🛫 AA 1234 · American (09:30)
+
+📍 Aeropuerto Las Américas (SDQ)
+➡️  Santiago de los Caballeros · centro histórico
+
+👤 María Fernández · 📱 809-555-0142
+👥 3 pasajeros · 🧳 2 maletas · SUV
+
+Responde <b>ACEPTAR</b> o <b>RECHAZAR</b> este mensaje.</pre>
+  </div>
+
+  <p class="nota mt-4">Los botones Aceptar / Rechazar / Navegar se conectan en <strong>Fase 6</strong> a las acciones reales del backend (que exigirá rol CONDUCTOR y que el viaje esté asignado a ese conductor). El envío por WhatsApp en v1 es un enlace wa.me; el envío automático requiere WhatsApp Business API (no contratada aún).</p>
+</div>
+</body>
+</html>

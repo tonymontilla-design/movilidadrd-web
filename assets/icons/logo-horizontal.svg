@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" role="img" aria-label="MovilidadRD">
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="#151515"/>
+  <g transform="translate(6,6) scale(0.42)">
+    <path d="M96 320c0-18 8-34 22-44l30-22 26-56c8-18 26-30 46-30h118c20 0 38 12 46 30l26 56 30 22c14 10 22 26 22 44v44c0 12-10 22-22 22h-18a36 36 0 0 1-72 0H188a36 36 0 0 1-72 0h-18c-12 0-22-10-22-22v-44z" fill="none" stroke="#C6A56B" stroke-width="30" stroke-linejoin="round"/>
+    <path d="M220 198h72" stroke="#C6A56B" stroke-width="24" stroke-linecap="round"/>
+  </g>
+  <text x="78" y="33" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="25" fill="#FFFFFF" letter-spacing="1">MOVILIDAD<tspan fill="#C6A56B">RD</tspan></text>
+  <text x="78" y="52" font-family="Inter, Arial, sans-serif" font-size="10.5" fill="#C6A56B" letter-spacing="2.5">TRANSPORTE PRIVADO</text>
+</svg>
