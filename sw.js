@@ -5,7 +5,7 @@
      datos personales ni financieros.
    - Sin conexión: página offline.html clara, sin fingir éxito.
 */
-const VERSION = 'mrd-v0.11.0';
+const VERSION = 'mrd-v0.12.0';
 const SHELL = [
   './',
   './index.html',
@@ -13,7 +13,11 @@ const SHELL = [
   './css/brand.css',
   './manifest.webmanifest',
   './assets/icons/icon.svg',
-  './assets/icons/logo-horizontal.svg'
+  './assets/icons/logo-horizontal.svg',
+  './servicios/transfer-aeropuerto-las-americas.html',
+  './servicios/transfer-aeropuerto-puntacana.html',
+  './servicios/transporte-ejecutivo-santo-domingo.html',
+  './servicios/viajes-interior-republica-dominicana.html',
 ];
 
 self.addEventListener('install', (event) => {
@@ -58,4 +62,6 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+
 

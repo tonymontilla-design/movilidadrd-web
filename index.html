@@ -219,6 +219,7 @@
             <i class="bi bi-patch-check-fill" style="font-size:1.8rem; color:var(--mrd-exito);"></i>
             <h3 class="h5 mb-0">¡Solicitud registrada!</h3>
           </div>
+          <p class="small text-dorado mb-1" style="letter-spacing:.08em; text-transform:uppercase;">Viajes ejecutivos, a la altura de tu tiempo</p>
           <p class="text-muted small mb-3" id="confirmacionMensaje">Guarda estos datos. Los necesitas para consultar el estado de tu viaje.</p>
           <div class="row g-3 align-items-center">
             <div class="col-md-6">
@@ -243,6 +244,7 @@
           </div>
           <div class="d-flex flex-wrap gap-2 mt-4">
             <a class="btn btn-success" id="confBtnWhatsApp" href="#" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i> Avisar por WhatsApp</a>
+            <button class="btn btn-outline-secondary" id="btnCompartirReserva" type="button"><i class="bi bi-share me-1"></i> Compartir mi viaje</button>
             <button class="btn btn-outline-dark" id="btnNuevaReserva" type="button"><i class="bi bi-plus-circle me-1"></i> Nueva reserva</button>
           </div>
         </div>
@@ -267,6 +269,18 @@
           <div class="alert d-none mt-3" id="resultadoConsulta" role="status"></div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ POR QUÉ MOVILIDADRD ══════════ -->
+<section class="mrd-seccion pt-0">
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-6 col-lg-3"><div class="mrd-card p-3 text-center"><i class="bi bi-patch-check-fill" style="font-size:1.6rem; color:#C6A56B;"></i><div class="small fw-bold mt-2">Tarifa confirmada antes del viaje</div><div class="small text-muted">Sin sorpresas, sin taxas ocultas</div></div></div>
+      <div class="col-6 col-lg-3"><div class="mrd-card p-3 text-center"><i class="bi bi-person-badge" style="font-size:1.6rem; color:#C6A56B;"></i><div class="small fw-bold mt-2">Conductores verificados</div><div class="small text-muted">Conductores verificados y listados en el despacho</div></div></div>
+      <div class="col-6 col-lg-3"><div class="mrd-card p-3 text-center"><i class="bi bi-calendar-check" style="font-size:1.6rem; color:#C6A56B;"></i><div class="small fw-bold mt-2">Reserva con código único</div><div class="small text-muted">Seguimiento del estado con token privado</div></div></div>
+      <div class="col-6 col-lg-3"><div class="mrd-card p-3 text-center"><i class="bi bi-headset" style="font-size:1.6rem; color:#C6A56B;"></i><div class="small fw-bold mt-2">Soporte por WhatsApp 24/7</div><div class="small text-muted">Persona real, sin robots ni contestador</div></div></div>
     </div>
   </div>
 </section>
@@ -313,10 +327,11 @@
       <div class="col-md-4">
         <img src="assets/icons/logo-horizontal.svg" alt="MovilidadRD" height="48" class="mb-2">
         <p class="mt-2">Transporte privado en República Dominicana. Traslados aeroportuarios, ejecutivo, turismo e interior.</p>
+        <p class="small mt-3" style="color:#C6A56B; font-style:italic;">Viajes ejecutivos, a la altura de tu tiempo</p>
       </div>
       <div class="col-6 col-md-2">
         <div class="mrd-foot-title">Servicios</div>
-        <ul class="list-unstyled"><li><a href="#servicios">Aeroportuario</a></li><li><a href="#servicios">Ejecutivo</a></li><li><a href="#servicios">Interior</a></li><li><a href="#servicios">Turismo</a></li></ul>
+        <ul class="list-unstyled"><li><a href="servicios/transfer-aeropuerto-las-americas.html">Transfer SDQ</a></li><li><a href="servicios/transfer-aeropuerto-puntacana.html">Transfer PUJ</a></li><li><a href="servicios/transporte-ejecutivo-santo-domingo.html">Ejecutivo SDQ</a></li><li><a href="servicios/viajes-interior-republica-dominicana.html">Viajes interior</a></li></ul>
       </div>
       <div class="col-6 col-md-2">
         <div class="mrd-foot-title">Empresa</div>
@@ -325,6 +340,7 @@
       <div class="col-md-4">
         <div class="mrd-foot-title">Legal</div>
         <p class="small mb-1">Precios en pesos dominicanos (RD$). Las tarifas se confirman antes del viaje.</p>
+        <p class="small mb-1" style="color:#C6A56B;"><i class="bi bi-shield-check me-1"></i>Conductores verificados · Tarifa transparente · Código único de reserva</p>
         <p class="small mb-0">© <span id="anioActual"></span> MovilidadRD. Todos los derechos reservados.</p>
       </div>
     </div>

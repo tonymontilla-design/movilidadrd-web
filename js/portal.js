@@ -198,6 +198,18 @@
       setTimeout(() => { $('btnCopiarToken').innerHTML = '<i class="bi bi-clipboard"></i>'; }, 1500);
     } catch (e) { /* portapapeles no disponible */ }
   });
+  $('btnCompartirReserva').addEventListener('click', async () => {
+    const codigo = $('confCodigo').textContent.trim();
+    const texto = 'Mi reserva MovilidadRD: ' + codigo + '\n' + window.location.origin + '/index.html#reservar';
+    try {
+      if (navigator.share) { await navigator.share({ title: 'MovilidadRD — Mi viaje', text: texto }); return; }
+    } catch (e) { /* cancelada por el usuario */ }
+    try {
+      await navigator.clipboard.writeText(texto);
+      window.alert('Texto copiado al portapapeles.');
+    } catch (e) { /* portapapeles no disponible */ }
+  });
+
   $('btnNuevaReserva').addEventListener('click', () => {
     $('panelConfirmacion').classList.add('d-none');
     form.reset();
