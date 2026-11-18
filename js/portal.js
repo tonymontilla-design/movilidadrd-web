@@ -256,4 +256,18 @@
         '<li><i class="bi bi-cash-coin text-dorado me-1"></i>' + escapeHtml(tarifa) + '</li>' +
       '</ul>';
   });
+
+  // Enlace desde el correo de solicitud: precarga código y token (?codigo=...&token=...#consultar)
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const qc = q.get('codigo');
+    const qt = q.get('token');
+    if (qc && qt) {
+      $('codigoConsulta').value = qc;
+      $('tokenConsulta').value = qt;
+      const bloque = document.getElementById('bloqueConsulta');
+      if (bloque) bloque.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $('formConsulta').dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+  } catch (e) { /* sin parámetros de consulta */ }
 })();
