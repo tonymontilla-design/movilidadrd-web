@@ -8,12 +8,12 @@
   'use strict';
 
   const SERVICIOS = [
-    { icono: 'bi-airplane', titulo: 'Traslados aeroportuarios', texto: 'SDQ, STI, PUJ, POP, AZS. Monitoreo de vuelo y espera sin costo hasta 60 minutos.' },
-    { icono: 'bi-building', titulo: 'Transporte ejecutivo', texto: 'Servicio corporativo discreto, puntual y con presentación impecable.' },
-    { icono: 'bi-map', titulo: 'Viajes al interior', texto: 'Santiago, Punta Cana, La Romana, Samaná, Puerto Plata y todo el país.' },
-    { icono: 'bi-camera', titulo: 'Turismo', texto: 'Tours privados con conductor bilingüe bajo solicitud.' },
-    { icono: 'bi-clock-history', titulo: 'Servicio por horas', texto: 'Disponibilidad por bloque horario para reuniones, eventos y diligencias.' },
-    { icono: 'bi-shield-check', titulo: 'Viajes seguros', texto: 'Conductores verificados, vehículos asegurados y soporte en ruta.' }
+    { icono: 'bi-airplane', img: 'svc-aeropuerto.jpg', titulo: 'Traslados aeroportuarios', texto: 'SDQ, STI, PUJ, POP, AZS. Monitoreo de vuelo y espera sin costo hasta 60 minutos.' },
+    { icono: 'bi-building', img: 'svc-ejecutivo.jpg', titulo: 'Transporte ejecutivo', texto: 'Servicio corporativo discreto, puntual y con presentación impecable.' },
+    { icono: 'bi-map', img: 'svc-interior.jpg', titulo: 'Viajes al interior', texto: 'Santiago, Punta Cana, La Romana, Samaná, Puerto Plata y todo el país.' },
+    { icono: 'bi-camera', img: 'svc-turismo.jpg', titulo: 'Turismo', texto: 'Tours privados con conductor bilingüe bajo solicitud.' },
+    { icono: 'bi-clock-history', img: 'svc-horas.jpg', titulo: 'Servicio por horas', texto: 'Disponibilidad por bloque horario para reuniones, eventos y diligencias.' },
+    { icono: 'bi-shield-check', img: 'svc-seguros.jpg', titulo: 'Viajes seguros', texto: 'Conductores verificados, vehículos asegurados y soporte en ruta.' }
   ];
 
   const VEHICULOS = [
@@ -38,7 +38,9 @@
   const bloque = (html) => html;
 
   document.getElementById('gridServicios').innerHTML = SERVICIOS.map((s) => bloque(
-    '<div class="col-6 col-lg-4"><div class="mrd-card p-3 p-md-4"><div class="mrd-card-icono"><i class="bi ' + s.icono + '"></i></div>' +
+    '<div class="col-6 col-lg-4"><div class="mrd-card p-3 p-md-4">' +
+    '<img class="mrd-card-img" src="assets/img/' + s.img + '" alt="' + s.titulo + '" loading="lazy">' +
+    '<div class="mrd-card-icono mt-3"><i class="bi ' + s.icono + '"></i></div>' +
     '<h3 class="mt-3">' + s.titulo + '</h3><p class="text-muted small mb-0">' + s.texto + '</p></div></div>'
   )).join('');
 
