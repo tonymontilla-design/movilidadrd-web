@@ -105,11 +105,23 @@
     if (!/^(\+?1)?[\s().-]*(809|829|849)[\s().-]*\d{3}[\s().-]*\d{4}$/.test(telefono)) errores.push('Teléfono dominicano válido (809/829/849).');
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errores.push('Correo inválido.');
 
+    // Servicio por horas: las horas definen la cotización (1–12)
+    if (tipo === 'POR_HORAS') {
+      const horas = Number($('horas').value);
+      if (!Number.isInteger(horas) || horas < 1 || horas > 12) errores.push('Indica las horas requeridas (entre 1 y 12).');
+    }
+
     return errores;
   }
 
   // Envío real de la reserva (el servidor vuelve a validar TODO)
   const form = $('formReserva');
+
+  // Servicio por horas: mostrar/ocultar el campo de horas requeridas
+  $('tipoServicio').addEventListener('change', () => {
+    $('campoHoras').classList.toggle('d-none', $('tipoServicio').value !== 'POR_HORAS');
+  });
+
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const errores = validarCliente();
@@ -143,6 +155,7 @@
       aerolinea: $('aerolinea').value.trim(),
       observaciones: $('observaciones').value.trim(),
       viajeRegreso: $('viajeRegreso').checked,
+      horas: $('tipoServicio').value === 'POR_HORAS' ? Number($('horas').value || 0) : 0,
       sitioWeb: $('sitioWeb').value
     };
 

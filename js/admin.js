@@ -97,18 +97,18 @@
         { titulo: 'Modalidad', clave: 'modalidad' },
         { titulo: 'Comisión', fn: (c) => escapeHtml(c.tipoComision) + (c.valorComision ? ' ' + escapeHtml(String(c.valorComision)) : '') },
         { titulo: 'WhatsApp', clave: 'whatsapp' },
-        { titulo: 'Estado', fn: (c) => '<select class="form-select form-select-sm mrd-estado-entidad" data-entidad="conductores" data-id="' + escapeHtml(c.id) + '" style="min-width:120px">' +
+        { titulo: 'Estado', fn: (c) => '<select class="form-select form-select-sm mrd-estado-entidad" data-entidad="conductores" data-id="' + escapeHtml(c.id) + '" data-codigo="' + escapeHtml(c.codigo) + '" style="min-width:120px">' +
             ['ACTIVO', 'INACTIVO', 'SUSPENDIDO', 'NO_DISPONIBLE'].map((s) => '<option' + (String(c.estado).toUpperCase() === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
-        { titulo: '', fn: (c) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="conductores" data-id="' + escapeHtml(c.id) + '" title="Editar"></button>' }
+        { titulo: '', fn: (c) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="conductores" data-id="' + escapeHtml(c.id) + '" data-codigo="' + escapeHtml(c.codigo) + '" title="Editar"></button>' }
       ], 'listarConductores', 'Sin conductores. Crea el primero con "Nuevo conductor".');
       if (id === 'vehiculos') return tablaSimple('tablaVehiculos', [
         { titulo: 'Código', clave: 'codigo' },
         { titulo: 'Vehículo', fn: (v) => escapeHtml(v.marca + ' ' + v.modelo + ' (' + v.anio + ')') },
         { titulo: 'Matrícula', clave: 'matricula' }, { titulo: 'Categoría', clave: 'categoria' },
         { titulo: 'Cap.', clave: 'capPasajeros' }, { titulo: 'Seguro venc.', clave: 'seguroVencimiento' },
-        { titulo: 'Estado', fn: (v) => '<select class="form-select form-select-sm mrd-estado-entidad" data-entidad="vehiculos" data-id="' + escapeHtml(v.id) + '" style="min-width:130px">' +
+        { titulo: 'Estado', fn: (v) => '<select class="form-select form-select-sm mrd-estado-entidad" data-entidad="vehiculos" data-id="' + escapeHtml(v.id) + '" data-codigo="' + escapeHtml(v.codigo) + '" style="min-width:130px">' +
             ['DISPONIBLE', 'OCUPADO', 'MANTENIMIENTO', 'INACTIVO'].map((s) => '<option' + (String(v.estado).toUpperCase() === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
-        { titulo: '', fn: (v) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="vehiculos" data-id="' + escapeHtml(v.id) + '" title="Editar"></button>' }
+        { titulo: '', fn: (v) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="vehiculos" data-id="' + escapeHtml(v.id) + '" data-codigo="' + escapeHtml(v.codigo) + '" title="Editar"></button>' }
       ], 'listarVehiculos', 'Sin vehículos. Crea el primero con "Nuevo vehículo".');
       if (id === 'clientes') return tablaSimple('tablaClientes', [
         { titulo: 'Nombre', clave: 'nombre' }, { titulo: 'Teléfono', clave: 'telefono' },
@@ -641,7 +641,11 @@
     const def = FORMULARIOS[entidadModal];
     const out = {};
     def.campos.forEach((c) => { out[c.id] = ($('#mgf_' + c.id).value || '').trim(); });
-    if (registroModal) out.id = registroModal.id;
+    // Respaldo: filas antiguas sin ID → enviar el código para que el servidor resuelva por ID o CODIGO
+    if (registroModal) {
+      out.id = registroModal.id || registroModal.codigo || '';
+      if (!out.codigo && registroModal.codigo) out.codigo = registroModal.codigo;
+    }
     return out;
   }
 
@@ -724,9 +728,10 @@
       const ent = estadoSel.dataset.entidad;
       const nuevo = estadoSel.value;
       const id = estadoSel.dataset.id;
+      const codigo = estadoSel.dataset.codigo || '';
       const acciones = { conductores: 'cambiarEstadoConductor', vehiculos: 'cambiarEstadoVehiculo', destinos: 'toggleDestino' };
       if (acciones[ent]) {
-        const payload = ent === 'destinos' ? { id, activo: nuevo } : { id, estado: nuevo };
+        const payload = ent === 'destinos' ? { id, codigo, activo: nuevo } : { id, codigo, estado: nuevo };
         api(acciones[ent], payload).then((r) => { if (!r.ok) window.alert(r.error || 'No se pudo cambiar el estado.'); });
       }
       return;
@@ -737,7 +742,12 @@
     if (editarEnt) {
       const def = FORMULARIOS[editarEnt.dataset.entidad];
       api(def.lista).then((r) => {
-        const registro = r.ok && r.data.find((x) => String(x.id) === String(editarEnt.dataset.id));
+        // Coincide por ID o, si la fila no tiene ID (datos pegados a mano), por código
+        const idBuscado = String(editarEnt.dataset.id || '');
+        const codBuscado = String(editarEnt.dataset.codigo || '');
+        const registro = r.ok && r.data.find((x) =>
+          (idBuscado && String(x.id) === idBuscado) ||
+          (codBuscado && String(x.codigo) === codBuscado));
         if (registro) abrirModalGenerico(editarEnt.dataset.entidad, registro);
       });
       return;

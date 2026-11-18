@@ -5,7 +5,7 @@
      datos personales ni financieros.
    - Sin conexión: página offline.html clara, sin fingir éxito.
 */
-const VERSION = 'mrd-v0.14.0';
+const VERSION = 'mrd-v0.15.0';
 const SHELL = [
   './',
   './index.html',
