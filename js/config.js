@@ -4,7 +4,7 @@
  * WEB_APP_URL: pendiente hasta desplegar el Web App (luego pegar la URL /exec).
  */
 window.MRD_CONFIG = {
-  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxAbQiAjVA6eOpVwVFGQ_MDNJZKSzEm7kDHODfjmr3dn8etnIDxbocXjmJwIsocPiiC/exec',
+  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwyW63ZcgbWKj8QdCOn3UhZlyN4HanF-LIt-e3tRt0EaTAfPJX_rI9vxNrlPgTI_GFK/exec',
   firebaseConfig: {
     apiKey: 'AIzaSyBWmTyDH1elQ6KBPzMAIISyRwH2GUdOsps',
     authDomain: 'movilidadrd.firebaseapp.com',

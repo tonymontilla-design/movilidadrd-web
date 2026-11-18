@@ -94,26 +94,34 @@
       ], 'listarViajesAdmin', 'Sin viajes todavía (llegan con el despacho, Fase 5)');
       if (id === 'conductores') return tablaSimple('tablaConductores', [
         { titulo: 'Código', clave: 'codigo' }, { titulo: 'Nombre', clave: 'nombre' },
-        { titulo: 'Modalidad', clave: 'modalidad' }, { titulo: 'Comisión', fn: (c) => escapeHtml(c.tipoComision) + (c.valorComision ? ' ' + escapeHtml(String(c.valorComision)) : '') },
+        { titulo: 'Modalidad', clave: 'modalidad' },
+        { titulo: 'Comisión', fn: (c) => escapeHtml(c.tipoComision) + (c.valorComision ? ' ' + escapeHtml(String(c.valorComision)) : '') },
         { titulo: 'WhatsApp', clave: 'whatsapp' },
-        { titulo: 'Estado', fn: (c) => badgeEstado(c.estado) }
-      ], 'listarConductores', 'Sin conductores registrados');
+        { titulo: 'Estado', fn: (c) => '<select class="form-select form-select-sm mrd-estado-entidad" data-entidad="conductores" data-id="' + escapeHtml(c.id) + '" style="min-width:120px">' +
+            ['ACTIVO', 'INACTIVO', 'SUSPENDIDO', 'NO_DISPONIBLE'].map((s) => '<option' + (String(c.estado).toUpperCase() === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
+        { titulo: '', fn: (c) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="conductores" data-id="' + escapeHtml(c.id) + '" title="Editar"></button>' }
+      ], 'listarConductores', 'Sin conductores. Crea el primero con "Nuevo conductor".');
       if (id === 'vehiculos') return tablaSimple('tablaVehiculos', [
         { titulo: 'Código', clave: 'codigo' },
         { titulo: 'Vehículo', fn: (v) => escapeHtml(v.marca + ' ' + v.modelo + ' (' + v.anio + ')') },
         { titulo: 'Matrícula', clave: 'matricula' }, { titulo: 'Categoría', clave: 'categoria' },
         { titulo: 'Cap.', clave: 'capPasajeros' }, { titulo: 'Seguro venc.', clave: 'seguroVencimiento' },
-        { titulo: 'Estado', fn: (v) => badgeEstado(v.estado) }
-      ], 'listarVehiculos', 'Sin vehículos registrados');
+        { titulo: 'Estado', fn: (v) => '<select class="form-select form-select-sm mrd-estado-entidad" data-entidad="vehiculos" data-id="' + escapeHtml(v.id) + '" style="min-width:130px">' +
+            ['DISPONIBLE', 'OCUPADO', 'MANTENIMIENTO', 'INACTIVO'].map((s) => '<option' + (String(v.estado).toUpperCase() === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
+        { titulo: '', fn: (v) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="vehiculos" data-id="' + escapeHtml(v.id) + '" title="Editar"></button>' }
+      ], 'listarVehiculos', 'Sin vehículos. Crea el primero con "Nuevo vehículo".');
       if (id === 'clientes') return tablaSimple('tablaClientes', [
         { titulo: 'Nombre', clave: 'nombre' }, { titulo: 'Teléfono', clave: 'telefono' },
-        { titulo: 'WhatsApp', clave: 'whatsapp' }, { titulo: 'Email', clave: 'email' }, { titulo: 'Estado', clave: 'estado' }
-      ], 'listarClientes', 'Sin clientes registrados');
+        { titulo: 'WhatsApp', clave: 'whatsapp' }, { titulo: 'Email', clave: 'email' }, { titulo: 'Estado', clave: 'estado' },
+        { titulo: '', fn: (c) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="clientes" data-id="' + escapeHtml(c.id) + '" title="Editar"></button>' }
+      ], 'listarClientes', 'Sin clientes todavía');
       if (id === 'destinos') return tablaSimple('tablaDestinos', [
         { titulo: 'Destino', clave: 'nombre' }, { titulo: 'Provincia', clave: 'provincia' },
         { titulo: 'Km est.', clave: 'kilometrosEst' },
         { titulo: 'Aeropuerto', fn: (d) => d.esAeropuerto === 'TRUE' ? 'Sí' : '—' }, { titulo: 'Popular', fn: (d) => d.popular === 'TRUE' ? 'Sí' : '—' },
-        { titulo: 'Activo', fn: (d) => d.activo === 'TRUE' ? 'Sí' : 'No' }
+        { titulo: 'Activo', fn: (d) => '<select class="form-select form-select-sm mrd-estado-entidad" data-entidad="destinos" data-id="' + escapeHtml(d.id) + '" style="min-width:80px">' +
+            ['TRUE', 'FALSE'].map((s) => '<option' + (String(d.activo).toUpperCase() === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
+        { titulo: '', fn: (d) => '<button class="btn btn-xs btn-outline-dark bi bi-pencil mrd-editar-entidad" data-entidad="destinos" data-id="' + escapeHtml(d.id) + '" title="Editar"></button>' }
       ], 'listarDestinosAdmin', 'Sin destinos');
       if (id === 'notificaciones') return cargarNotificaciones();
       if (id === 'configuracion') return cargarConfiguracion();
@@ -551,6 +559,107 @@
     ], r.ok ? r.data.items : [], r.ok ? 'Sin eventos' : ('Error: ' + r.error));
   }
 
+  // ───────────── CRUD genérico (Fase 11) ─────────────
+  const FORMULARIOS = {
+    conductores: {
+      titulo: 'Conductor', crear: 'crearConductor', actualizar: 'actualizarConductor', lista: 'listarConductores', tabla: 'tablaConductores',
+      campos: [
+        { id: 'nombre', etiqueta: 'Nombre completo *', tipo: 'text', req: true },
+        { id: 'codigo', etiqueta: 'Código (vacío = auto)', tipo: 'text' },
+        { id: 'identificacion', etiqueta: 'Cédula', tipo: 'text' },
+        { id: 'telefono', etiqueta: 'Teléfono / WhatsApp *', tipo: 'text', req: true },
+        { id: 'email', etiqueta: 'Email', tipo: 'email' },
+        { id: 'modalidad', etiqueta: 'Modalidad', tipo: 'select', opciones: ['PROPIO', 'CONTRATADO'] },
+        { id: 'tipoComision', etiqueta: 'Tipo de comisión', tipo: 'select', opciones: ['PORCENTAJE', 'FIJA', 'POR_VIAJE'] },
+        { id: 'valorComision', etiqueta: 'Valor comisión (% / RD$)', tipo: 'number' },
+        { id: 'direccion', etiqueta: 'Dirección', tipo: 'text' },
+        { id: 'comisionPorViaje', etiqueta: 'Comisión por viaje (RD$, si aplica)', tipo: 'number' }
+      ],
+      idClave: 'id',
+      cargarListado: (lista) => lista.map((c) => ({ id: c.id, codigo: c.codigo, nombre: c.nombre, telefono: c.whatsapp, modalidad: c.modalidad, tipoComision: c.tipoComision, valorComision: c.valorComision, email: c.email }))
+    },
+    vehiculos: {
+      titulo: 'Vehículo', crear: 'crearVehiculo', actualizar: 'actualizarVehiculo', lista: 'listarVehiculos', tabla: 'tablaVehiculos',
+      campos: [
+        { id: 'marca', etiqueta: 'Marca *', tipo: 'text', req: true },
+        { id: 'modelo', etiqueta: 'Modelo *', tipo: 'text', req: true },
+        { id: 'anio', etiqueta: 'Año *', tipo: 'number', req: true },
+        { id: 'matricula', etiqueta: 'Matrícula *', tipo: 'text', req: true },
+        { id: 'color', etiqueta: 'Color', tipo: 'text' },
+        { id: 'categoria', etiqueta: 'Categoría *', tipo: 'select', opciones: ['SEDAN', 'SUV', 'VAN', 'LUXURY', 'MINIBUS'], req: true },
+        { id: 'capPasajeros', etiqueta: 'Pasajeros (máx. categoría) *', tipo: 'number', req: true },
+        { id: 'capEquipaje', etiqueta: 'Maletas', tipo: 'number' },
+        { id: 'tipoPropiedad', etiqueta: 'Propiedad', tipo: 'select', opciones: ['PROPIO', 'TERCERO'] },
+        { id: 'seguroVencimiento', etiqueta: 'Vencimiento seguro (DD/MM/AAAA)', tipo: 'text' }
+      ],
+      idClave: 'id'
+    },
+    destinos: {
+      titulo: 'Destino', crear: 'crearDestino', actualizar: 'actualizarDestino', lista: 'listarDestinosAdmin', tabla: 'tablaDestinos',
+      campos: [
+        { id: 'nombre', etiqueta: 'Nombre del destino *', tipo: 'text', req: true },
+        { id: 'provincia', etiqueta: 'Provincia', tipo: 'text' },
+        { id: 'kilometrosEst', etiqueta: 'Kilómetros estimados *', tipo: 'number', req: true },
+        { id: 'esAeropuerto', etiqueta: 'Es aeropuerto', tipo: 'select', opciones: ['FALSE', 'TRUE'] },
+        { id: 'popular', etiqueta: 'Popular', tipo: 'select', opciones: ['FALSE', 'TRUE'] }
+      ],
+      idClave: 'id'
+    },
+    clientes: {
+      titulo: 'Cliente', actualizar: 'actualizarCliente', lista: 'listarClientes', tabla: 'tablaClientes',
+      campos: [
+        { id: 'nombre', etiqueta: 'Nombre completo *', tipo: 'text', req: true },
+        { id: 'telefono', etiqueta: 'Teléfono (809/829/849) *', tipo: 'text', req: true },
+        { id: 'email', etiqueta: 'Email', tipo: 'email' }
+      ],
+      idClave: 'id'
+    }
+  };
+
+  let entidadModal = null;
+  let registroModal = null;
+
+  function abrirModalGenerico(entidad, registro) {
+    entidadModal = entidad;
+    registroModal = registro || null;
+    const def = FORMULARIOS[entidad];
+    $('#mgTitulo').textContent = (registro ? 'Editar ' : 'Nuevo ') + def.titulo;
+    $('#mgError').classList.add('d-none');
+    const cont = $('#mgCampos');
+    cont.innerHTML = def.campos.map((c) => {
+      const valor = registro ? (registro[c.id] == null ? '' : registro[c.id]) : (c.valorPorDefecto || '');
+      const etiqueta = '<label class="form-label" for="mgf_' + c.id + '">' + escapeHtml(c.etiqueta) + '</label>';
+      if (c.tipo === 'select') {
+        return etiqueta + '<select class="form-select" id="mgf_' + c.id + '">' + c.opciones.map((o) => '<option value="' + o + '"' + (String(valor).toUpperCase() === o ? ' selected' : '') + '>' + o + '</option>').join('') + '</select>';
+      }
+      return etiqueta + '<input class="form-control" id="mgf_' + c.id + '" type="' + c.tipo + '" value="' + escapeHtml(String(valor)) + '" ' + (c.req ? 'required' : '') + '>';
+    }).join('');
+    bootstrap.Modal.getOrCreateInstance($('#modalGenerico')).show();
+  }
+
+  function recolectarGenerico() {
+    const def = FORMULARIOS[entidadModal];
+    const out = {};
+    def.campos.forEach((c) => { out[c.id] = ($('#mgf_' + c.id).value || '').trim(); });
+    if (registroModal) out.id = registroModal.id;
+    return out;
+  }
+
+  async function guardarGenerico() {
+    const def = FORMULARIOS[entidadModal];
+    const err = $('#mgError'); err.classList.add('d-none');
+    for (const c of def.campos) {
+      if (c.req && !($('#mgf_' + c.id).value || '').trim()) { err.textContent = 'Falta: ' + c.etiqueta; err.classList.remove('d-none'); return; }
+    }
+    const payload = recolectarGenerico();
+    const accion = registroModal ? def.actualizar : def.crear;
+    if (!accion) { err.textContent = 'Esta entidad no permite crear desde aquí.'; err.classList.remove('d-none'); return; }
+    const r = await api(accion, payload);
+    if (!r.ok) { err.textContent = r.error || 'No se pudo guardar.'; err.classList.remove('d-none'); return; }
+    bootstrap.Modal.getInstance($('#modalGenerico')).hide();
+    cargarSeccion(seccionActual);
+  }
+
   // ───────────── Menú y arranque ─────────────
   const menuNav = $('#menuLateral');
   menuNav.innerHTML = MENU.map((m) => '<a class="mrd-side-link" href="#" data-seccion="' + m.id + '"><i class="bi ' + m.icono + '"></i>' + m.texto + '</a>').join('');
@@ -571,6 +680,7 @@
   $('#formFiltrosAuditoria').addEventListener('submit', (ev) => { ev.preventDefault(); cargarAuditoria(); });
   $('#btnGenerarReporte').addEventListener('click', generarReporte);
   $('#btnDescargarReporte').addEventListener('click', descargarReporteCSV);
+  $('#mgGuardar').addEventListener('click', guardarGenerico);
 
   // Delegación: abrir detalle de reserva / editar tarifa / toggle / leída / despacho
   document.addEventListener('click', (ev) => {
@@ -590,9 +700,31 @@
     if (toggle) { toggleTarifa(toggle.dataset.id, toggle.dataset.activa); return; }
     const leida = ev.target.closest('.mrd-leida');
     if (leida) { api('marcarNotificacionLeida', { id: leida.dataset.id }).then(() => cargarNotificaciones()); return; }
+    const estadoSel = ev.target.closest('.mrd-estado-entidad');
+    if (estadoSel) {
+      const ent = estadoSel.dataset.entidad;
+      const nuevo = estadoSel.value;
+      const id = estadoSel.dataset.id;
+      const acciones = { conductores: 'cambiarEstadoConductor', vehiculos: 'cambiarEstadoVehiculo', destinos: 'toggleDestino' };
+      if (acciones[ent]) {
+        const payload = ent === 'destinos' ? { id, activo: nuevo } : { id, estado: nuevo };
+        api(acciones[ent], payload).then((r) => { if (!r.ok) window.alert(r.error || 'No se pudo cambiar el estado.'); });
+      }
+      return;
+    }
+    const nueva = ev.target.closest('.mrd-nueva-entidad');
+    if (nueva) { abrirModalGenerico(nueva.dataset.entidad, null); return; }
+    const editarEnt = ev.target.closest('.mrd-editar-entidad');
+    if (editarEnt) {
+      const def = FORMULARIOS[editarEnt.dataset.entidad];
+      api(def.lista).then((r) => {
+        const registro = r.ok && r.data.find((x) => String(x.id) === String(editarEnt.dataset.id));
+        if (registro) abrirModalGenerico(editarEnt.dataset.entidad, registro);
+      });
+      return;
+    }
     const pagar = ev.target.closest('.mrd-pagar-comision');
-    if (pagar) { api('marcarComisionPagada', { id: pagar.dataset.id }).then((r) => { if (r.ok) cargarComisiones(); }); return; }
-  });
+    if (pagar) { api('marcarComisionPagada', { id: pagar.dataset.id }).then((r) => { if (r.ok) cargarComisiones(); }); return; }  });
 
   // Despacho
   $('#despachoConductor').addEventListener('change', actualizarVehiculosDespacho);

@@ -178,9 +178,9 @@
         $('confTarifa').textContent = 'Cotización pendiente de confirmación por el administrador';
       }
       $('confToken').textContent = d.tokenPrivado;
-      $('confirmacionMensaje').textContent = d.mensaje || 'Guarda estos datos. Los necesitas para consultar el estado de tu viaje.';
-      const msg = encodeURIComponent('Hola MovilidadRD, registré la reserva ' + (d.codigo || '') + '. Quedo atento a la confirmación.');
-      $('confBtnWhatsApp').href = 'https://wa.me/' + numero.replace(/\D/g, '') + '?text=' + msg;
+      const notaCorreo = d.emailEnviado ? 'También te enviamos el detalle por correo.' : 'Guarda estos datos; los necesitas para consultar tu reserva.';
+      $('confirmacionMensaje').textContent = (d.mensaje ? d.mensaje + ' ' : '') + notaCorreo;
+      $('confBtnWhatsApp').href = d.enlaceWhatsApp || ('https://wa.me/' + numero.replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola MovilidadRD, registré la reserva ' + (d.codigo || '') + '.'));
       panel.scrollIntoView({ behavior: 'smooth' });
     } else {
       // Honeypot: respuesta simulada sin datos

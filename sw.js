@@ -1,11 +1,11 @@
-/* MOVILIDADRD — Service Worker
+﻿/* MOVILIDADRD — Service Worker
    Estrategia:
    - Shell estático (HTML/CSS/iconos locales): cache-first con actualización en segundo plano.
    - Llamadas al API (script.google.com / googleapis): SIEMPRE red — nunca se cachean
      datos personales ni financieros.
    - Sin conexión: página offline.html clara, sin fingir éxito.
 */
-const VERSION = 'mrd-v0.8.0';
+const VERSION = 'mrd-v0.10.0';
 const SHELL = [
   './',
   './index.html',
@@ -58,3 +58,4 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+

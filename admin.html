@@ -136,10 +136,10 @@
 
     <!-- ── Viajes / Conductores / Vehículos / Clientes / Destinos (lectura) ── -->
     <section id="seccion-viajes" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaViajes"><thead></thead><tbody></tbody></table></div><p class="small text-muted mt-2">El despacho y la asignación en vivo llegan en la Fase 5.</p></section>
-    <section id="seccion-conductores" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaConductores"><thead></thead><tbody></tbody></table></div></section>
-    <section id="seccion-vehiculos" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaVehiculos"><thead></thead><tbody></tbody></table></div></section>
+    <section id="seccion-conductores" class="mrd-seccion-panel d-none"><div class="d-flex justify-content-end mb-2"><button class="btn btn-mrd btn-sm mrd-nueva-entidad" data-entidad="conductores"><i class="bi bi-plus-lg me-1"></i>Nuevo conductor</button></div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaConductores"><thead></thead><tbody></tbody></table></div></section>
+    <section id="seccion-vehiculos" class="mrd-seccion-panel d-none"><div class="d-flex justify-content-end mb-2"><button class="btn btn-mrd btn-sm mrd-nueva-entidad" data-entidad="vehiculos"><i class="bi bi-plus-lg me-1"></i>Nuevo vehículo</button></div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaVehiculos"><thead></thead><tbody></tbody></table></div></section>
     <section id="seccion-clientes" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaClientes"><thead></thead><tbody></tbody></table></div></section>
-    <section id="seccion-destinos" class="mrd-seccion-panel d-none"><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaDestinos"><thead></thead><tbody></tbody></table></div></section>
+    <section id="seccion-destinos" class="mrd-seccion-panel d-none"><div class="d-flex justify-content-end mb-2"><button class="btn btn-mrd btn-sm mrd-nueva-entidad" data-entidad="destinos"><i class="bi bi-plus-lg me-1"></i>Nuevo destino</button></div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaDestinos"><thead></thead><tbody></tbody></table></div></section>
 
     <!-- ── Notificaciones ── -->
     <section id="seccion-notificaciones" class="mrd-seccion-panel d-none"><div class="mrd-form p-3" id="listaNotificaciones"></div></section>
@@ -327,6 +327,20 @@
         <div class="alert alert-danger d-none mt-3 small" id="tfError" role="alert"></div>
       </div>
       <div class="modal-footer border-secondary"><button class="btn btn-mrd" id="tfGuardar"><i class="bi bi-save me-1"></i>Guardar tarifa</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL GENÉRICO (CRUD: conductores, vehículos, destinos, clientes) ══════════ -->
+<div class="modal fade" id="modalGenerico" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#1b1814; color:#eee; border:1px solid rgba(198,165,107,.35);">
+      <div class="modal-header border-secondary">
+        <h2 class="modal-title h6" id="mgTitulo">Entidad</h2>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body"><div id="mgCampos"></div><div class="alert alert-danger d-none mt-2 small" id="mgError" role="alert"></div></div>
+      <div class="modal-footer border-secondary"><button class="btn btn-mrd" id="mgGuardar"><i class="bi bi-save me-1"></i>Guardar</button></div>
     </div>
   </div>
 </div>
