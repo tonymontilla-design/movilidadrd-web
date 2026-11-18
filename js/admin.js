@@ -660,6 +660,25 @@
     cargarSeccion(seccionActual);
   }
 
+  // ───────────── Usuarios (Fase 9.5 · SUPERADMIN) ─────────────
+  async function cargarUsuarios() {
+    const [r, c] = await Promise.all([api('listarUsuarios'), api('listarConductores')]);
+    const selCond = $('#nuConductor');
+    if (c.ok) {
+      const previo = selCond.value;
+      selCond.innerHTML = '<option value="">— Sin vincular —</option>' + c.data.map((d) => '<option value="' + escapeHtml(d.id) + '">' + escapeHtml(d.codigo + ' — ' + d.nombre) + '</option>').join('');
+      selCond.value = previo;
+    }
+    renderTabla('tablaUsuarios', [
+      { titulo: 'Nombre', clave: 'nombre' },
+      { titulo: 'Correo', clave: 'email' },
+      { titulo: 'Rol', fn: (u) => '<select class="form-select form-select-sm mrd-rol-usuario" data-id="' + escapeHtml(u.id) + '" data-conductor="' + escapeHtml(u.conductorId) + '" style="min-width:120px">' + ['SUPERADMIN', 'ADMIN', 'CONDUCTOR'].map((s) => '<option' + (u.rol === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
+      { titulo: 'Conductor vinculado', fn: (u) => escapeHtml(u.conductorNombre || '—') },
+      { titulo: 'Activo', fn: (u) => '<select class="form-select form-select-sm mrd-activo-usuario" data-id="' + escapeHtml(u.id) + '" style="min-width:80px">' + ['TRUE', 'FALSE'].map((s) => '<option' + ((u.activo ? 'TRUE' : 'FALSE') === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' }
+    ], r.ok ? r.data : [], r.ok ? 'Sin usuarios' : ('Error: ' + r.error));
+    if (r.ok) $('#totalUsuarios').textContent = String(r.data.length);
+  }
+
   // ───────────── Menú y arranque ─────────────
   const menuNav = $('#menuLateral');
   menuNav.innerHTML = MENU.map((m) => '<a class="mrd-side-link" href="#" data-seccion="' + m.id + '"><i class="bi ' + m.icono + '"></i>' + m.texto + '</a>').join('');

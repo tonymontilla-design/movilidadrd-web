@@ -251,19 +251,31 @@
     <!-- ── Configuración (lectura) ── -->
     <section id="seccion-configuracion" class="mrd-seccion-panel d-none"><div class="mrd-form p-3 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaConfiguracion"><thead></thead><tbody></tbody></table></div><p class="small text-muted mt-2">Para cambiar una clave: edita la hoja CONFIGURACION directamente o pide a tu desarrollador (escritura de claves habilitada en Fase 9).</p></section>
 
-    <!-- ── Usuarios ── -->
+    <!-- ── Usuarios (SUPERADMIN) ── -->
     <section id="seccion-usuarios" class="mrd-seccion-panel d-none">
-      <div class="mrd-form p-4">
-        <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Tu sesión actual</h2>
-        <dl class="row small mb-3" id="infoSesion"></dl>
-        <hr>
-        <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Alta de usuarios</h3>
-        <ol class="small">
-          <li>Firebase Console → Authentication → Users → Add user (correo + contraseña).</li>
-          <li>Copia el UID del usuario.</li>
-          <li>En la hoja <strong>USUARIOS</strong>: ID (UUID), UID_FIREBASE, EMAIL (minúsculas), NOMBRE, ROL (<code>SUPERADMIN</code>/<code>ADMIN</code>/<code>CONDUCTOR</code>), CONDUCTOR_ID (solo CONDUCTOR), ACTIVO=<code>TRUE</code>.</li>
-        </ol>
-        <p class="small text-muted mb-0">La administración de usuarios desde el panel llega en la Fase 9.</p>
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <form id="formCrearUsuario" class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-person-plus me-1"></i>Crear usuario</h2>
+            <label class="form-label" for="nuNombre">Nombre completo *</label>
+            <input class="form-control" id="nuNombre" placeholder="Richard Montilla" required minlength="3">
+            <label class="form-label mt-2" for="nuEmail">Correo *</label>
+            <input class="form-control" id="nuEmail" type="email" placeholder="correo@ejemplo.com" required>
+            <label class="form-label mt-2" for="nuRol">Rol *</label>
+            <select class="form-select" id="nuRol"><option value="CONDUCTOR">CONDUCTOR</option><option value="ADMIN">ADMIN</option><option value="SUPERADMIN">SUPERADMIN</option></select>
+            <label class="form-label mt-2" for="nuConductor">Vincular a conductor (requerido para CONDUCTOR)</label>
+            <select class="form-select" id="nuConductor"><option value="">— Sin vincular —</option></select>
+            <button class="btn btn-mrd w-100 mt-3" type="submit"><i class="bi bi-person-check me-1"></i>Crear y enviar recuperación</button>
+            <p class="form-text mt-2">Se crea la cuenta en Firebase con contraseña aleatoria temporal (nunca se muestra) y se envía el correo "Restablecer contraseña". El usuario define su propia contraseña.</p>
+            <div class="alert alert-danger d-none mt-2 small" id="nuError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="nuExito" role="status"></div>
+          </form>
+        </div>
+        <div class="col-lg-8">
+          <div class="small text-muted mb-1">Usuarios del sistema (<span id="totalUsuarios">—</span>)</div>
+          <div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaUsuarios"><thead></thead><tbody></tbody></table></div>
+          <p class="small text-muted mt-2">Los cambios de rol, activación y vinculación se aplican al instante. Un SUPERADMIN activo siempre queda como mínimo uno.</p>
+        </div>
       </div>
     </section>
 
