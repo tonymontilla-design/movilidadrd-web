@@ -5,7 +5,7 @@
      datos personales ni financieros.
    - Sin conexión: página offline.html clara, sin fingir éxito.
 */
-const VERSION = 'mrd-v0.13.0';
+const VERSION = 'mrd-v0.14.0';
 const SHELL = [
   './',
   './index.html',
@@ -18,6 +18,7 @@ const SHELL = [
   './servicios/transfer-aeropuerto-puntacana.html',
   './servicios/transporte-ejecutivo-santo-domingo.html',
   './servicios/viajes-interior-republica-dominicana.html',
+  './qr.html',
 ];
 
 self.addEventListener('install', (event) => {
