@@ -8,7 +8,7 @@
   'use strict';
 
   const SERVICIOS = [
-    { icono: 'bi-airplane', img: 'svc-aeropuerto.jpg', titulo: 'Traslados aeroportuarios', texto: 'SDQ, STI, PUJ, POP, AZS. Monitoreo de vuelo y espera sin costo hasta 60 minutos.' },
+    { icono: 'bi-airplane', img: 'svc-aeropuerto.jpg', titulo: 'Traslados al Aeropuertos', texto: 'SDQ, STI, PUJ, POP, AZS. Monitoreo de vuelo y espera sin costo hasta 60 minutos.' },
     { icono: 'bi-building', img: 'svc-ejecutivo.jpg', titulo: 'Transporte ejecutivo', texto: 'Servicio corporativo discreto, puntual y con presentación impecable.' },
     { icono: 'bi-map', img: 'svc-interior.jpg', titulo: 'Viajes al interior', texto: 'Santiago, Punta Cana, La Romana, Samaná, Puerto Plata y todo el país.' },
     { icono: 'bi-camera', img: 'svc-turismo.jpg', titulo: 'Turismo', texto: 'Tours privados con conductor bilingüe bajo solicitud.' },

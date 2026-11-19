@@ -1,7 +1,7 @@
 {
   "name": "MovilidadRD — Transporte Privado",
   "short_name": "MovilidadRD",
-  "description": "Transportación privada en República Dominicana: traslados aeroportuarios, transporte ejecutivo, turístico e interior. Reserva en línea.",
+  "description": "Transportación privada en República Dominicana: Traslados al Aeropuertos, transporte ejecutivo, turístico e interior. Reserva en línea.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
