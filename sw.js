@@ -5,7 +5,7 @@
      datos personales ni financieros.
    - Sin conexión: página offline.html clara, sin fingir éxito.
 */
-const VERSION = 'mrd-v0.15.2';
+const VERSION = 'mrd-v0.15.3';
 const SHELL = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const SHELL = [
   './manifest.webmanifest',
   './assets/icons/icon.svg',
   './assets/icons/logo-horizontal.svg',
+  './assets/icons/logo-horizontal-dark.svg',
   './servicios/transfer-aeropuerto-las-americas.html',
   './servicios/transfer-aeropuerto-puntacana.html',
   './servicios/transporte-ejecutivo-santo-domingo.html',
