@@ -131,6 +131,26 @@
         <h2 class="mrd-seccion-titulo">Reserva tu viaje</h2>
         <p class="mrd-seccion-sub">Completa el formulario. Recibirás un código único de reserva y la confirmación por WhatsApp.</p>
 
+        <!-- Asistente de reservas con IA -->
+        <div class="row g-3 mb-4">
+          <div class="col-12">
+            <div class="mrd-form p-3" style="background:#fff; border-left:4px solid var(--mrd-dorado);">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-robot" style="font-size:1.5rem; color:var(--mrd-carbon);"></i>
+                <h6 class="mb-0">Asistente de reservas (IA)</h6>
+              </div>
+              <p class="small text-muted mb-2">Escribe tu viaje en lenguaje natural y relleno el formulario por ti. Ejemplo: "Quiero ir de Santo Domingo al aeropuerto SDQ mañana a las 3pm para 2 personas".</p>
+              <div class="input-group">
+                <input class="form-control" id="iaMensaje" type="text" placeholder="Escribe aquí tu viaje...">
+                <button class="btn btn-mrd" id="btnUsarIA" type="button"><i class="bi bi-magic me-1"></i>Usar asistente</button>
+              </div>
+              <div class="mt-2">
+                <div class="small text-success" id="iaMensajeRespuesta" style="display:none;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <form class="mrd-form p-4 p-md-5 mt-4" id="formReserva" novalidate>
           <div class="row g-3">
             <div class="col-md-6">
@@ -215,6 +235,17 @@
                 <label class="form-check-label" for="viajeRegreso">También necesito viaje de regreso (se cotiza por separado)</label>
               </div>
             </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="opcionPago" id="opcionPagoAnticipo" value="ANTICIPO" checked required>
+                <label class="form-check-label" for="opcionPagoAnticipo">Opción A — Reserva con anticipo <span class="text-muted small">(RD$ 20% del total; el saldo se abona antes del viaje)</span></label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="opcionPago" id="opcionPagoTotal" value="TOTAL" required>
+                <label class="form-check-label" for="opcionPagoTotal">Opción B — Pagar el viaje completo <span class="text-muted small">(pago único, sin saldo)</span></label>
+              </div>
+              <div class="form-text">El anticipo mínimo es del 20% del total (configurable). Con <strong>Opción A</strong> reserva con anticipo; con <strong>Opción B</strong> pagas el total.</div>
+            </div>
             <!-- Honeypot anti-bot: invisible para humanos, requerido vacío por el servidor -->
             <input type="text" id="sitioWeb" name="sitioWeb" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
           </div>
@@ -253,6 +284,51 @@
               <div class="d-flex gap-2 mt-1">
                 <code class="flex-grow-1 p-2 rounded" style="background:#151515; color:#C6A56B; word-break:break-all; font-size:.75rem;" id="confToken">—</code>
                 <button class="btn btn-outline-secondary btn-sm" id="btnCopiarToken" type="button" title="Copiar token"><i class="bi bi-clipboard"></i></button>
+              </div>
+            </div>
+          </div>
+          <!-- Panel de pago (PENDIENTE_PAGO): montos, opción elegida e instrucciones -->
+          <div class="row g-3 d-none" id="bloquePago">
+            <div class="col-12">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-credit-card" style="font-size:1.8rem; color:var(--mrd-dorado);"></i>
+                <h3 class="h5 mb-0">Pago de tu reserva</h3>
+              </div>
+              <p class="small text-muted mb-3">Estado de la reserva: <span class="mrd-badge mrd-badge-pendiente" id="pagoEstadoReserva">PENDIENTE_PAGO</span></p>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="small text-muted">Precio del viaje</div>
+                  <div class="fw-bold" style="font-size:1.15rem;" id="pagoTotal">—</div>
+                </div>
+                <div class="col-6">
+                  <div class="small text-muted">Saldo pendiente</div>
+                  <div class="fw-bold" style="font-size:1.15rem;" id="pagoSaldo">—</div>
+                </div>
+              </div>
+
+              <div class="col-12 d-none" id="bloqueOpcionAnticipo">
+                <div class="mrd-form p-3" style="background:var(--mrd-gris-claro);">
+                  <div class="small text-muted">Opción A — Reserva con anticipo</div>
+                  <div class="fw-bold" id="pagoAnticipo">—</div>
+                  <div class="small text-muted mt-1">El anticipo mínimo se descuenta del total y el saldo queda pendiente.</div>
+                </div>
+              </div>
+              <div class="col-12 d-none" id="bloqueOpcionTotal">
+                <div class="mrd-form p-3" style="background:var(--mrd-gris-claro);">
+                  <div class="small text-muted">Opción B — Pago total</div>
+                  <div class="fw-bold" id="pagoTotalCompleto">—</div>
+                  <div class="small text-muted mt-1">Paga el total de la reserva en una sola transferencia.</div>
+                </div>
+              </div>
+
+              <div class="col-12 mt-3">
+                <div class="small text-muted mb-1">Instrucciones de pago</div>
+                <div class="small" id="pagoInstrucciones">—</div>
+              </div>
+
+              <div class="col-12 d-flex flex-wrap gap-2">
+                <button class="btn btn-mrd" id="btnPagarAnticipo" type="button" disabled><i class="bi bi-credit-card me-1"></i> Pagar anticipo y reservar</button>
+                <button class="btn btn-mrd-outline" id="btnPagarTotal" type="button" disabled><i class="bi bi-cash-coin me-1"></i> Pagar viaje completo</button>
               </div>
             </div>
           </div>

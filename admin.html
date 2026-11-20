@@ -123,8 +123,8 @@
               <textarea class="form-control" id="despachoInstrucciones" rows="2" maxlength="500" placeholder="Ej. Llamar al cliente al llegar a la puerta B, envío de invoice por correo…"></textarea>
               <div class="text-muted small mt-2" id="despachoInfoDisponibilidad"></div>
               <div class="d-flex align-items-center gap-3 mt-3 flex-wrap">
-                <button class="btn btn-mrd" id="btnAsignarViaje"><i class="bi bi-check2-circle me-1"></i>Asignar viaje</button>
-                <span class="small text-muted">Validación en vivo: solape, separación, capacidad, categoría y autorización.</span>
+                <button class="btn btn-mrd" id="btnAsignarViaje" disabled><i class="bi bi-check2-circle me-1"></i>Asignar viaje</button>
+                <span class="small" id="despachoValidacion"><span class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Validación en vivo: solape, separación, capacidad, categoría y autorización.</span></span>
               </div>
               <div class="alert alert-danger d-none mt-3 small" id="despachoError" role="alert"></div>
               <div class="alert alert-success d-none mt-3 small" id="despachoExito" role="status">
@@ -191,7 +191,102 @@
             <div class="alert alert-success d-none mt-2 small" id="pgExito" role="status"></div>
           </form>
         </div>
-        <div class="col-lg-8"><div class="small text-muted mb-1">Últimos pagos</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaPagos"><thead></thead><tbody></tbody></table></div></div>
+        <div class="col-lg-4">
+          <form id="formIniciarPago" class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-clock me-1"></i>Iniciar abono</h2>
+            <label class="form-label" for="ipCodigo">Código de reserva *</label>
+            <input class="form-control" id="ipCodigo" placeholder="MRD-2026-00001" required>
+            <label class="form-label mt-2" for="ipOpcion">Opción de pago *</label>
+            <select class="form-select" id="ipOpcion" required>
+              <option value="ANTICIPO">Anticipo (mínimo 20%)</option>
+              <option value="TOTAL">Pago completo (100%)</option>
+            </select>
+            <button class="btn btn-outline-dark w-100 mt-3" type="submit"><i class="bi bi-play-circle me-1"></i> Iniciar abono → PENDIENTE_PAGO</button>
+            <div class="alert alert-danger d-none mt-2 small" id="ipError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="ipExito" role="status"></div>
+          </form>
+          <form id="formVerificarAbono" class="mrd-filtros mt-4">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-check2-circle me-1"></i>Verificar abono</h2>
+            <label class="form-label" for="vaCodigo">Código de reserva *</label>
+            <input class="form-control" id="vaCodigo" placeholder="MRD-2026-00001" required>
+            <div class="row g-2 mt-2">
+              <div class="col-md-5">
+                <label class="form-label">Monto RD$ *</label>
+                <input class="form-control" id="vaMonto" type="number" min="0.01" step="0.01" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Referencia *</label>
+                <input class="form-control" id="vaReferencia" placeholder="N.º transferencia" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Método *</label>
+                <select class="form-select" id="vaMetodo" required>
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="LINK">Pago electrónico (link)</option>
+                  <option value="TARJETA">Tarjeta (proveedor)</option>
+                </select>
+              </div>
+            </div>
+            <label class="form-label mt-2" for="vaReferenciaTx">Referencia de transacción (opcional)</label>
+            <input class="form-control" id="vaReferenciaTx" placeholder="Id. proveedor / webhook">
+            <button class="btn btn-outline-dark w-100 mt-3" type="submit"><i class="bi bi-check-circle me-1"></i> Verificar → CONFIRMADA</button>
+            <div class="alert alert-danger d-none mt-2 small" id="vaError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="vaExito" role="status"></div>
+          </form>
+        </div>
+        <div class="col-lg-4">
+          <form id="formPagarSaldo" class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-arrow-repeat me-1"></i>Pagar saldo</h2>
+            <label class="form-label" for="psCodigo">Código de reserva *</label>
+            <input class="form-control" id="psCodigo" placeholder="MRD-2026-00001" required>
+            <div class="row g-2 mt-2">
+              <div class="col-md-6">
+                <label class="form-label">Monto RD$ *</label>
+                <input class="form-control" id="psMonto" type="number" min="0.01" step="0.01" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Referencia *</label>
+                <input class="form-control" id="psReferencia" placeholder="N.º transferencia" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Método</label>
+                <select class="form-select" id="psMetodo">
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="LINK">Pago electrónico (link)</option>
+                  <option value="TARJETA">Tarjeta (proveedor)</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-outline-dark w-100 mt-3" type="submit"><i class="bi bi-credit-card me-1"></i> Pagar saldo → sin pendiente</button>
+            <div class="alert alert-danger d-none mt-2 small" id="psError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="psExito" role="status"></div>
+          </form>
+          <form id="formReembolso" class="mrd-filtros mt-4">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-arrow-counterclockwise me-1"></i>Reembolso</h2>
+            <label class="form-label" for="rfCodigo">Código de reserva *</label>
+            <input class="form-control" id="rfCodigo" placeholder="MRD-2026-00001" required>
+            <div class="row g-2 mt-2">
+              <div class="col-md-6">
+                <label class="form-label">Monto RD$ *</label>
+                <input class="form-control" id="rfMonto" type="number" min="0.01" step="0.01" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Motivo *</label>
+                <input class="form-control" id="rfMotivo" placeholder="Cancelación / devolución" required>
+              </div>
+            </div>
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="rfAprobar">
+              <label class="form-check-label" for="rfAprobar">Aprobar reembolso (solo administrador)</label>
+            </div>
+            <button class="btn btn-outline-dark w-100 mt-3" type="submit"><i class="bi bi-return me-1"></i> Registrar reembolso</button>
+            <div class="alert alert-danger d-none mt-2 small" id="rfError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="rfExito" role="status"></div>
+          </form>
+        </div>
+        <div class="col-lg-12 mt-4"><div class="small text-muted mb-1">Últimos pagos y transacciones</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaPagos"><thead></thead><tbody></tbody></table></div></div>
       </div>
     </section>
 
@@ -239,6 +334,139 @@
           </div>
         </div>
         <div class="col-lg-8"><div class="small text-muted mb-1">Comisiones calculadas (pendientes y pagadas)</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaComisiones"><thead></thead><tbody></tbody></table></div></div>
+      </div>
+    </section>
+
+    <!-- ── Conciliación diaria ── -->
+    <section id="seccion-conciliacion" class="mrd-seccion-panel d-none">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <form id="formGenerarConciliacion" class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-calculator me-1"></i>Arqueo diario</h2>
+            <label class="form-label" for="ccFecha">Fecha (DD/MM/AAAA)</label>
+            <input class="form-control" id="ccFecha" type="text" placeholder="20/11/2026" required>
+            <button class="btn btn-mrd w-100 mt-3" type="submit"><i class="bi bi-calendar-check me-1"></i> Generar arqueo</button>
+            <div class="alert alert-danger d-none mt-2 small" id="ccError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="ccExito" role="status"></div>
+          </form>
+        </div>
+        <div class="col-lg-8"><div class="small text-muted mb-1">Arqueos registrados</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaConciliaciones"><thead></thead><tbody></tbody></table></div></div>
+      </div>
+    </section>
+
+    <!-- ── Centro de Seguridad (Antifraude) ── -->
+    <section id="seccion-centroSeguridad" class="mrd-seccion-panel d-none">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-shield-check me-1"></i>Motor antifraude</h2>
+            <p class="small text-muted mb-3">Ejecuta el motor de detección para evaluar reglas AF-001 a AF-010 contra reservas, viajes, pagos y OTPs.</p>
+            <button class="btn btn-mrd w-100 mb-3" id="btnEjecutarMotorFraude" type="button"><i class="bi bi-play-circle me-1"></i> Ejecutar motor antifraude</button>
+            <div class="alert alert-danger d-none mt-2 small" id="csError" role="alert"></div>
+            <div class="alert alert-success d-none mt-2 small" id="csExito" role="status"></div>
+          </div>
+        </div>
+        <div class="col-lg-8"><div class="small text-muted mb-1">Alertas de seguridad</div><div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaAlertasFraude"><thead></thead><tbody></tbody></table></div></div>
+      </div>
+    </section>
+
+    <!-- ── Fidelización y Bonos ── -->
+    <section id="seccion-fidelizacion" class="mrd-seccion-panel d-none">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-gift me-1"></i>Bonos de conductor</h2>
+            <form id="formCrearBono" class="mrd-filtros">
+              <label class="form-label" for="cbConductor">Conductor</label>
+              <input class="form-control" id="cbConductor" placeholder="ID del conductor" required>
+              <label class="form-label mt-2" for="cbTipo">Tipo de bono</label>
+              <select class="form-select" id="cbTipo" required>
+                <option value="MENSUAL">Mensual</option>
+                <option value="DESEMPEÑO">Desempeño</option>
+                <option value="FIDELIZACION">Fidelización</option>
+                <option value="EXCEPCIONAL">Excepcional</option>
+              </select>
+              <label class="form-label mt-2" for="cbMonto">Monto RD$</label>
+              <input class="form-control" id="cbMonto" type="number" min="1" step="0.01" required>
+              <label class="form-label mt-2" for="cbDesde">Período desde</label>
+              <input class="form-control" id="cbDesde" type="text" placeholder="DD/MM/AAAA">
+              <label class="form-label mt-2" for="cbHasta">Período hasta</label>
+              <input class="form-control" id="cbHasta" type="text" placeholder="DD/MM/AAAA">
+              <label class="form-label mt-2" for="cbMotivo">Motivo</label>
+              <input class="form-control" id="cbMotivo" placeholder="Motivo del bono">
+              <button class="btn btn-mrd w-100 mt-3" type="submit"><i class="bi bi-gift me-1"></i> Crear bono</button>
+              <div class="alert alert-danger d-none mt-2 small" id="cbError" role="alert"></div>
+              <div class="alert alert-success d-none mt-2 small" id="cbExito" role="status"></div>
+            </form>
+          </div>
+          <div class="mrd-filtros mt-4">
+            <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Calcular métricas</h3>
+            <label class="form-label" for="cbConductorMetrica">Conductor</label>
+            <input class="form-control" id="cbConductorMetrica" placeholder="ID del conductor">
+            <button class="btn btn-mrd-dark w-100 mt-2" id="btnCalcularMetricas" type="button"><i class="bi bi-calculator me-1"></i> Calcular métricas</button>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="mrd-filtros">
+            <h2 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;"><i class="bi bi-tag me-1"></i>Código promocional</h2>
+            <form id="formCrearReward" class="mrd-filtros">
+              <label class="form-label" for="crCodigo">Código</label>
+              <input class="form-control" id="crCodigo" placeholder="DESCUENTO10" required>
+              <label class="form-label mt-2" for="crNombre">Nombre</label>
+              <input class="form-control" id="crNombre">
+              <label class="form-label mt-2" for="crDescripcion">Descripción</label>
+              <input class="form-control" id="crDescripcion">
+              <div class="row g-2 mt-2">
+                <div class="col-6">
+                  <label class="form-label">Tipo</label>
+                  <select class="form-select" id="crTipo">
+                    <option value="PORCENTAJE">Porcentaje</option>
+                    <option value="FIJO">Fijo</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Valor</label>
+                  <input class="form-control" id="crValor" type="number" min="1" step="0.01">
+                </div>
+              </div>
+              <div class="row g-2 mt-2">
+                <div class="col-6">
+                  <label class="form-label">Monto mínimo</label>
+                  <input class="form-control" id="crMinimo" type="number" min="0" step="0.01">
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Usos máx.</label>
+                  <input class="form-control" id="crMaximos" type="number" min="0">
+                </div>
+              </div>
+              <label class="form-label mt-2" for="crDesde">Vigencia desde</label>
+              <input class="form-control" id="crDesde" type="text" placeholder="DD/MM/AAAA">
+              <label class="form-label mt-2" for="crHasta">Vigencia hasta</label>
+              <input class="form-control" id="crHasta" type="text" placeholder="DD/MM/AAAA">
+              <label class="form-label mt-2" for="crNotas">Notas</label>
+              <input class="form-control" id="crNotas">
+              <button class="btn btn-mrd w-100 mt-3" type="submit"><i class="bi bi-tag me-1"></i> Crear código</button>
+              <div class="alert alert-danger d-none mt-2 small" id="crError" role="alert"></div>
+              <div class="alert alert-success d-none mt-2 small" id="crExito" role="status"></div>
+            </form>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="mrd-filtros">
+            <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Bonos de conductor</h3>
+            <div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaBonosConductor"><thead></thead><tbody></tbody></table></div>
+          </div>
+          <div class="mrd-filtros mt-4">
+            <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Métricas de conductor</h3>
+            <div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaMetricasConductor"><thead></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="mrd-filtros">
+            <h3 class="h6 text-uppercase text-muted" style="letter-spacing:.1em;">Códigos promocionales</h3>
+            <div class="mrd-form p-2 mrd-tabla-wrap"><table class="mrd-tabla" id="tablaRewards"><thead></thead><tbody></tbody></table></div>
+          </div>
+        </div>
       </div>
     </section>
 

@@ -156,7 +156,8 @@
       observaciones: $('observaciones').value.trim(),
       viajeRegreso: $('viajeRegreso').checked,
       horas: $('tipoServicio').value === 'POR_HORAS' ? Number($('horas').value || 0) : 0,
-      sitioWeb: $('sitioWeb').value
+      sitioWeb: $('sitioWeb').value,
+      opcionPago: $('opcionPago').value || 'ANTICIPO'
     };
 
     const r = await window.MRD_API.llamar('crearReservaPublica', payload, null);
@@ -197,12 +198,82 @@
       $('confirmacionMensaje').textContent = (d.mensaje ? d.mensaje + ' ' : '') + notaCorreo;
       $('confBtnWhatsApp').href = d.enlaceWhatsApp || ('https://wa.me/' + numero.replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola MovilidadRD, registré la reserva ' + (d.codigo || '') + '.'));
       panel.scrollIntoView({ behavior: 'smooth' });
+
+      if (d.estado === 'PENDIENTE_PAGO') renderPanelPago(d);
     } else {
       // Honeypot: respuesta simulada sin datos
       salida.textContent = 'Solicitud recibida.';
       salida.classList.remove('d-none');
     }
   });
+
+  // ───────────── Panel de pago (PENDIENTE_PAGO) ─────────────
+  let ultimoAbono = null;
+  let ultimoInstrucciones = null;
+
+  function renderPanelPago(d) {
+    const abono = d.abono || {};
+    const total = Number(abono.total) || 0;
+    const anticipo = Number(abono.anticipo) || 0;
+    const saldo = Number(abono.saldo) || 0;
+    const opcion = String(abono.opcion || 'ANTICIPO');
+    ultimoAbono = abono;
+    ultimoInstrucciones = d.instruccionesPago || null;
+
+    if ($('pagoEstadoReserva')) $('pagoEstadoReserva').textContent = d.estado || 'PENDIENTE_PAGO';
+    if ($('pagoTotal')) $('pagoTotal').textContent = formatearRD(total);
+    if ($('pagoSaldo')) $('pagoSaldo').textContent = formatearRD(saldo);
+    if ($('pagoAnticipo')) $('pagoAnticipo').textContent = formatearRD(anticipo);
+    if ($('pagoTotalCompleto')) $('pagoTotalCompleto').textContent = formatearRD(total);
+
+    const bloqAnt = $('bloqueOpcionAnticipo');
+    const bloqTot = $('bloqueOpcionTotal');
+    if (bloqAnt) bloqAnt.classList.toggle('d-none', opcion !== 'ANTICIPO');
+    if (bloqTot) bloqTot.classList.toggle('d-none', opcion !== 'TOTAL');
+    if ($('opcionPagoAnticipo')) $('opcionPagoAnticipo').checked = opcion !== 'TOTAL';
+    if ($('opcionPagoTotal')) $('opcionPagoTotal').checked = opcion === 'TOTAL';
+
+    if ($('pagoInstrucciones')) renderInstruccionesPago(d.instruccionesPago);
+
+    if ($('bloquePago')) $('bloquePago').classList.remove('d-none');
+    const bAnt = $('btnPagarAnticipo');
+    const bTot = $('btnPagarTotal');
+    if (bAnt) bAnt.disabled = false;
+    if (bTot) bTot.disabled = false;
+  }
+
+  function renderInstruccionesPago(instr) {
+    if (!$('pagoInstrucciones')) return;
+    const metodo = (instr && instr.metodo) ? String(instr.metodo) : 'Transferencia bancaria';
+    const banco = (instr && instr.banco) ? String(instr.banco) : '';
+    const cuenta = (instr && instr.cuenta) ? String(instr.cuenta) : '';
+    const titular = (instr && instr.titular) ? String(instr.titular) : '';
+    const referencia = (instr && instr.referencia) ? String(instr.referencia) : '';
+    let html = '<div><i class="bi bi-credit-card text-dorado me-1"></i>' + escapeHtml(metodo) + '</div>';
+    if (banco) html += '<div class="small text-muted mt-1">Banco: ' + escapeHtml(banco) + '</div>';
+    if (cuenta) html += '<div class="small text-muted">Cuenta: ' + escapeHtml(cuenta) + '</div>';
+    if (titular) html += '<div class="small text-muted">Titular: ' + escapeHtml(titular) + '</div>';
+    if (referencia) html += '<div class="small text-muted">Referencia: <code>' + escapeHtml(referencia) + '</code></div>';
+    $('pagoInstrucciones').innerHTML = html;
+  }
+
+  function abrirPagoWhatsApp(opcion) {
+    const abono = ultimoAbono || {};
+    const instr = ultimoInstrucciones || {};
+    const numero = (window.MRD_CONFIG && window.MRD_CONFIG.WHATSAPP_NEGOCIO) || '18096131079';
+    const codigo = $('confCodigo') ? String($('confCodigo').textContent || '').trim() : '';
+    const monto = opcion === 'TOTAL' ? Number(abono.total) || 0 : Number(abono.anticipo) || 0;
+    const mensaje = 'Hola MovilidadRD, quiero pagar mi reserva ' + codigo + ' con MovilidadRD (opcion: ' + opcion + ').' +
+      ' Monto: RD$ ' + monto + '.' +
+      (instr.referencia ? ' Referencia: ' + instr.referencia + '.' : '') +
+      (instr.banco ? ' Banco: ' + instr.banco + '.' : '') +
+      (instr.cuenta ? ' Cuenta: ' + instr.cuenta + '.' : '') +
+      (instr.titular ? ' Titular: ' + instr.titular + '.' : '');
+    window.location.href = 'https://wa.me/' + numero.replace(/\D/g, '') + '?text=' + encodeURIComponent(mensaje);
+  }
+
+  $('btnPagarAnticipo').addEventListener('click', () => { abrirPagoWhatsApp('ANTICIPO'); });
+  $('btnPagarTotal').addEventListener('click', () => { abrirPagoWhatsApp('TOTAL'); });
 
   // Acciones del panel de confirmación
   $('btnCopiarToken').addEventListener('click', async () => {
@@ -283,4 +354,78 @@
       $('formConsulta').dispatchEvent(new Event('submit', { cancelable: true }));
     }
   } catch (e) { /* sin parámetros de consulta */ }
+
+  // ───────────── Asistente de reservas con IA ─────────────
+  const btnUsarIA = $('btnUsarIA');
+  const iaMensaje = $('iaMensaje');
+  const iaRespuesta = $('iaMensajeRespuesta');
+
+  if (btnUsarIA && iaMensaje && iaRespuesta) {
+    btnUsarIA.addEventListener('click', async () => {
+      const texto = iaMensaje.value.trim();
+      if (!texto) return;
+      btnUsarIA.disabled = true;
+      btnUsarIA.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Procesando…';
+      iaRespuesta.style.display = 'none';
+      iaRespuesta.className = 'small';
+
+      const r = await window.MRD_API.llamar('asesorIA', { mensaje: texto }, null);
+
+      btnUsarIA.disabled = false;
+      btnUsarIA.innerHTML = '<i class="bi bi-magic me-1"></i>Usar asistente';
+
+      if (!r.ok) {
+        iaRespuesta.textContent = 'Asistente no disponible por el momento. Puedes llenar el formulario manualmente.';
+        iaRespuesta.className = 'small text-muted';
+        iaRespuesta.style.display = 'block';
+        return;
+      }
+
+      const d = r.data || {};
+      const c = d.campos || {};
+
+      const mapeo = {
+        origen: 'origen',
+        destino: 'destino',
+        fecha: 'fecha',
+        hora: 'hora',
+        pasajeros: 'pasajeros',
+        maletas: 'maletas',
+        categoriaVehiculo: 'categoria',
+        tipoServicio: 'tipoServicio'
+      };
+
+      for (const [campoIA, idForm] of Object.entries(mapeo)) {
+        const el = $(idForm);
+        if (el && c[campoIA] != null && String(c[campoIA]).trim() !== '') {
+          const valor = String(c[campoIA]);
+          if (el.tagName === 'SELECT') {
+            let encontrado = false;
+            for (const opt of el.options) {
+              if (String(opt.value).toUpperCase() === valor.toUpperCase()) {
+                el.value = opt.value;
+                encontrado = true;
+                break;
+              }
+            }
+            if (!encontrado) {
+              for (const opt of el.options) {
+                if (opt.text.toUpperCase().includes(valor.toUpperCase())) {
+                  el.value = opt.value;
+                  break;
+                }
+              }
+            }
+          } else {
+            el.value = valor;
+          }
+        }
+      }
+
+      iaRespuesta.textContent = d.mensaje || 'He rellenado los campos detectados. Revisa antes de enviar.';
+      iaRespuesta.className = 'small text-success';
+      iaRespuesta.style.display = 'block';
+      iaMensaje.value = '';
+    });
+  }
 })();

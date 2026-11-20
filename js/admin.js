@@ -15,6 +15,11 @@
     const map = { PENDIENTE: 'mrd-badge-pendiente', COTIZADA: 'mrd-badge-pendiente', CONFIRMADA: 'mrd-badge-confirmada', ASIGNADA: 'mrd-badge-confirmada', EN_CURSO: 'mrd-badge-confirmada', COMPLETADA: 'mrd-badge-confirmada', CANCELADA: 'mrd-badge-cancelada', RECHAZADA: 'mrd-badge-cancelada' };
     return '<span class="mrd-badge ' + (map[e] || 'mrd-badge-info') + '">' + escapeHtml(e || '—') + '</span>';
   };
+  const badgePago = (e) => {
+    const map = { PENDIENTE: 'mrd-badge-pendiente', VERIFICADO: 'mrd-badge-confirmada', APROBADO: 'mrd-badge-confirmada', PAGADA: 'mrd-badge-confirmada', RECHAZADO: 'mrd-badge-cancelada' };
+    const val = String(e || '').toUpperCase();
+    return '<span class="mrd-badge ' + (map[val] || 'mrd-badge-info') + '">' + escapeHtml(val || 'PENDIENTE') + '</span>';
+  };
 
   const MENU = [
     { id: 'dashboard', icono: 'bi-speedometer2', texto: 'Dashboard' },
@@ -33,7 +38,10 @@
     { id: 'auditoria', icono: 'bi-shield-lock', texto: 'Auditoría' },
     { id: 'pagos', icono: 'bi-credit-card', texto: 'Pagos' },
     { id: 'gastos', icono: 'bi-receipt', texto: 'Gastos' },
-    { id: 'comisiones', icono: 'bi-percent', texto: 'Comisiones' }
+    { id: 'comisiones', icono: 'bi-percent', texto: 'Comisiones' },
+    { id: 'conciliacion', icono: 'bi-calculator', texto: 'Conciliación' },
+    { id: 'centroSeguridad', icono: 'bi-shield-check', texto: 'Centro de Seguridad' },
+    { id: 'fidelizacion', icono: 'bi-gift', texto: 'Fidelización y Bonos' }
   ];
 
   let paginaReservas = 1;
@@ -81,6 +89,9 @@
       if (id === 'pagos') return cargarPagos();
       if (id === 'gastos') return cargarGastos();
       if (id === 'comisiones') return cargarComisiones();
+      if (id === 'conciliacion') return cargarConciliaciones();
+      if (id === 'centroSeguridad') return cargarCentroSeguridad();
+      if (id === 'fidelizacion') return cargarFidelizacion();
       if (id === 'auditoria') return cargarAuditoria();
       if (id === 'tarifas') return cargarTarifas();
       if (id === 'viajes') return tablaSimple('tablaViajes', [
@@ -176,6 +187,20 @@
     fechaHasta: $('#fHasta').value.trim(),
     pagina: paginaReservas
   });
+
+  function accionesReservaFila(x) {
+    const codigo = escapeHtml(x.codigo);
+    const estado = String(x.estado || '').toUpperCase();
+    const btns = [];
+    if (estado === 'COTIZADA') btns.push('<button class="btn btn-xs btn-outline-dark mrd-iniciar-abono" data-codigo="' + codigo + '"><i class="bi bi-cash-coin"></i> Iniciar abono</button>');
+    if (estado === 'PENDIENTE_PAGO') btns.push('<button class="btn btn-xs btn-outline-dark mrd-verificar-abono" data-codigo="' + codigo + '"><i class="bi bi-check2"></i> Verificar abono</button>');
+    if (estado === 'CONFIRMADA') {
+      btns.push('<button class="btn btn-xs btn-outline-success mrd-pagar-saldo" data-codigo="' + codigo + '"><i class="bi bi-credit-card"></i> Pagar saldo</button>');
+      btns.push('<button class="btn btn-xs btn-outline-danger mrd-reembolso" data-codigo="' + codigo + '"><i class="bi bi-arrow-counterclockwise"></i> Reembolso</button>');
+    }
+    if (!btns.length) return '<span class="text-muted">—</span>';
+    return btns.join(' ');
+  }
 
   async function cargarReservas() {
     const f = leerFiltros();
@@ -401,6 +426,7 @@
 
   async function seleccionarReservaDespacho(codigo) {
     despachoSeleccion = codigo;
+    despachoDisponibles = [];
     $$('.mrd-despacho-card').forEach((b) => b.classList.toggle('seleccionada', b.dataset.codigo === codigo));
     const x = despachoItems.find((i) => i.codigo === codigo);
     if (!x) return;
@@ -416,17 +442,21 @@
     const selV = $('#despachoVehiculo');
     selC.innerHTML = '<option>Cargando…</option>'; selV.innerHTML = '<option>—</option>';
     $('#despachoInfoDisponibilidad').textContent = '';
+    actualizarValidacionDespacho();
 
     const r = await api('conductoresDisponibles', { codigo });
     if (!r.ok) {
       selC.innerHTML = '<option>—</option>';
       const e = $('#despachoError'); e.textContent = r.error || 'No se pudo consultar disponibilidad.'; e.classList.remove('d-none');
+      actualizarValidacionDespacho();
       return;
     }
     despachoDisponibles = r.data.items || [];
     if (!despachoDisponibles.length) {
       selC.innerHTML = '<option>—</option>';
+      selV.innerHTML = '<option>—</option>';
       $('#despachoInfoDisponibilidad').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> Ningún conductor/vehículo cumple: categoría ' + escapeHtml(r.data.categoria) + ', ' + escapeHtml(r.data.pasajeros) + ' pax, disponibilidad horaria y separación. Revisa estado de conductores/vehículos o pasa a cotización manual.</span>';
+      actualizarValidacionDespacho();
       return;
     }
     const porConductor = {};
@@ -449,10 +479,69 @@
       .filter((i) => i.conductorId === conductorId)
       .map((i) => '<option value="' + escapeHtml(i.vehiculoId) + '">' + escapeHtml(i.vehiculoCodigo + ' · ' + i.marcaModelo + ' · ' + i.matricula + ' · cap. ' + i.capPasajeros + (i.principal ? ' · ★ principal' : '')) + '</option>');
     $('#despachoVehiculo').innerHTML = opciones.join('') || '<option>—</option>';
+    actualizarValidacionDespacho();
+  }
+
+  /**
+   * Validación en vivo de la asignación: habilita el botón "Asignar viaje" solo
+   * cuando la combinación reserva ↔ conductor ↔ vehículo cumple categoría,
+   * capacidad, disponibilidad horaria (sin solape) y autorización.
+   */
+  function actualizarValidacionDespacho() {
+    const btn = $('#btnAsignarViaje');
+    const ind = $('#despachoValidacion');
+    if (!btn || !ind) return;
+    const x = despachoItems.find((i) => i.codigo === despachoSeleccion);
+
+    const fallar = (icono, clase, txt) => {
+      btn.disabled = true;
+      ind.innerHTML = '<span class="' + clase + '"><i class="bi ' + icono + ' me-1"></i>' + txt + '</span>';
+    };
+
+    if (!x) return fallar('bi-x-circle-fill', 'text-danger', 'Selecciona una reserva de la lista.');
+    const conductorId = $('#despachoConductor').value;
+    if (!conductorId || conductorId.indexOf('Cargando') === 0) {
+      return fallar('bi-hourglass-split', 'text-muted', 'Consultando disponibilidad de conductores y vehículos…');
+    }
+    if (!despachoDisponibles.length) {
+      return fallar('bi-exclamation-triangle-fill', 'text-danger',
+        'Ningún conductor/vehículo cumple: categoría ' + escapeHtml(x.categoriaVehiculo) + ', ' + escapeHtml(x.pasajeros) + ' pax, disponibilidad horaria y separación.');
+    }
+    if (!conductorId || conductorId === '—') {
+      return fallar('bi-hourglass-split', 'text-warning', 'Selecciona un conductor disponible.');
+    }
+    const vehiculoId = $('#despachoVehiculo').value;
+    if (!vehiculoId || vehiculoId === '—') {
+      return fallar('bi-hourglass-split', 'text-warning', 'Selecciona un vehículo disponible.');
+    }
+    const item = despachoDisponibles.find((i) => i.conductorId === conductorId && i.vehiculoId === vehiculoId);
+    if (!item) {
+      return fallar('bi-x-circle-fill', 'text-danger', 'La combinación conductor/vehículo no está en la lista de disponibles. Vuelve a consultar la reserva.');
+    }
+
+    // Requisitos de la reserva vs. combinación seleccionada (filtrada por el servidor)
+    const catOk = !item.categoria || String(item.categoria).toUpperCase() === String(x.categoriaVehiculo).toUpperCase();
+    const capOk = (Number(item.capPasajeros) || 0) >= (Number(x.pasajeros) || 1);
+    const checks = [
+      { ok: catOk, txt: 'categoría ' + x.categoriaVehiculo },
+      { ok: capOk, txt: 'capacidad ' + item.capPasajeros + ' ≥ ' + x.pasajeros + ' pax' },
+      { ok: true, txt: 'sin solape horario' },
+      { ok: true, txt: 'vehículo autorizado' }
+    ];
+    const fallan = checks.filter((c) => !c.ok);
+    if (fallan.length) {
+      return fallar('bi-x-circle-fill', 'text-danger', 'No cumple: ' + fallan.map((c) => c.txt).join(', ') + '.');
+    }
+    btn.disabled = false;
+    ind.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Listo para asignar — ' +
+      escapeHtml(item.conductorNombre + ' · ' + item.vehiculoCodigo) + ' · ' +
+      escapeHtml(checks.map((c) => c.txt).join(' · ')) + '</span>';
   }
 
   async function asignarViaje() {
     if (!despachoSeleccion) return;
+    const btn0 = $('#btnAsignarViaje');
+    if (btn0.disabled) return; // validación en vivo no aprobada
     const err = $('#despachoError'); err.classList.add('d-none');
     const ok = $('#despachoExito'); ok.classList.add('d-none');
     const conductorId = $('#despachoConductor').value;
@@ -464,7 +553,7 @@
       conductorId, vehiculoId,
       instrucciones: $('#despachoInstrucciones').value.trim()
     });
-    btn.disabled = false;
+    actualizarValidacionDespacho();
     if (!r.ok) { err.textContent = r.error || 'No se pudo asignar.'; err.classList.remove('d-none'); return; }
     const d = r.data;
     $('#despachoExitoDetalle').innerHTML = '<strong>' + escapeHtml(d.codigoReserva) + '</strong> → ' + escapeHtml(d.conductorNombre) + ' · ' + escapeHtml(d.vehiculoMatricula);
@@ -481,7 +570,12 @@
       { titulo: 'Reserva', clave: 'codigoReserva' },
       { titulo: 'Cliente', clave: 'cliente' },
       { titulo: 'Tipo', clave: 'tipo' },
-      { titulo: 'Monto', fn: (p) => mrd(p.monto) }
+      { titulo: 'Método', clave: 'metodo' },
+      { titulo: 'Estado', fn: (p) => badgePago(p.estadoPago) },
+      { titulo: 'Monto', fn: (p) => mrd(p.monto) },
+      { titulo: 'Ref.', clave: 'referencia' },
+      { titulo: 'Ref. tx.', clave: 'referenciaTx' },
+      { titulo: 'Registró', clave: 'registradoPor' }
     ], r.ok ? r.data : [], r.ok ? 'Sin pagos registrados' : ('Error: ' + r.error));
   }
 
@@ -507,6 +601,116 @@
       { titulo: 'Pago', fn: (c) => (c.estadoPago === 'PAGADA' ? '<span class="mrd-badge mrd-badge-confirmada">PAGADA</span>' : '<span class="mrd-badge mrd-badge-pendiente">PENDIENTE</span>') },
       { titulo: '', fn: (c) => c.estadoPago === 'PAGADA' ? '' : '<button class="btn btn-xs btn-outline-success mrd-pagar-comision" data-id="' + escapeHtml(c.id) + '"><i class="bi bi-check2"></i> Pagar</button>' }
     ], r.ok ? r.data : [], r.ok ? 'Sin comisiones calculadas' : ('Error: ' + r.error));
+  }
+
+  async function cargarConciliaciones() {
+    const r = await api('listarConciliaciones');
+    renderTabla('tablaConciliaciones', [
+      { titulo: 'Fecha', clave: 'fecha' },
+      { titulo: 'Estado', fn: (c) => badgePago(c.estado) },
+      { titulo: 'Tipo', fn: (c) => badgePago(c.tipo) },
+      { titulo: 'Reservado', fn: (c) => mrd(c.reservado) },
+      { titulo: 'Confirmado', fn: (c) => mrd(c.confirmado) },
+      { titulo: 'Diferencia', fn: (c) => {
+        const d = Number(c.diferencia || 0);
+        const cls = d > 0 ? 'text-success' : (d < 0 ? 'text-danger' : 'text-muted');
+        return '<span class="' + escapeHtml(cls) + '">' + mrd(d) + '</span>';
+      } },
+      { titulo: 'Registró', clave: 'registradoPor' },
+      { titulo: '', fn: (c) => {
+        if (String(c.estado).toUpperCase() !== 'PENDIENTE') return '';
+        const puedeCerrar = (c.tipo === 'CUADRADO') || true; // el backend valida el rol
+        return '<button class="btn btn-xs btn-outline-dark mrd-cerrar-conciliacion" data-id="' + escapeHtml(c.id) + '" data-tipo="' + escapeHtml(c.tipo) + '" data-diferencia="' + escapeHtml(c.diferencia) + '"><i class="bi bi-check-lg"></i> Cerrar</button>';
+      } }
+    ], r.ok ? r.data : [], r.ok ? 'Sin arqueos registrados' : ('Error: ' + r.error));
+  }
+
+  // ───────────── Centro de Seguridad (Antifraude) ─────────────
+  async function cargarCentroSeguridad() {
+    const r = await api('listarFraudAlerts');
+    const nivelCls = (n) => {
+      const nn = String(n || '').toUpperCase();
+      if (nn === 'CRITICO') return 'mrd-badge-cancelada';
+      if (nn === 'ELEVADO') return 'text-bg-warning';
+      if (nn === 'MODERADO') return 'text-bg-info';
+      return 'mrd-badge-pendiente';
+    };
+    renderTabla('tablaAlertasFraude', [
+      { titulo: 'Fecha', clave: 'fecha' },
+      { titulo: 'Regla', clave: 'codigoRegla' },
+      { titulo: 'Nivel', fn: (a) => '<span class="mrd-badge ' + escapeHtml(nivelCls(a.nivelRiesgo)) + '">' + escapeHtml(a.nivelRiesgo) + '</span>' },
+      { titulo: 'Puntaje', clave: 'puntaje' },
+      { titulo: 'Reserva', clave: 'reservaCodigo' },
+      { titulo: 'Conductor', clave: 'conductorNombre' },
+      { titulo: 'Descripción', clave: 'descripcion' },
+      { titulo: 'Estado', fn: (a) => badgePago(a.estado) },
+      { titulo: '', fn: (a) => {
+        const acc = [];
+        if (String(a.estado).toUpperCase() === 'ABIERTA') {
+          acc.push('<button class="btn btn-xs btn-outline-primary mrd-revisar-alerta" data-id="' + escapeHtml(a.id) + '"><i class="bi bi-eye"></i> Revisar</button>');
+          acc.push('<button class="btn btn-xs btn-outline-success mrd-crear-caso" data-id="' + escapeHtml(a.id) + '"><i class="bi bi-plus-circle"></i> Caso</button>');
+        }
+        if (String(a.estado).toUpperCase() === 'EN_REVISION') {
+          acc.push('<button class="btn btn-xs btn-outline-primary mrd-revisar-alerta" data-id="' + escapeHtml(a.id) + '"><i class="bi bi-eye"></i> Revisar</button>');
+        }
+        return acc.join(' ');
+      } }
+    ], r.ok ? r.data : [], r.ok ? 'Sin alertas de seguridad' : ('Error: ' + r.error));
+  }
+
+  // ───────────── Fidelización y Bonos ─────────────
+  async function cargarFidelizacion() {
+    const [rBonos, rMetros, rRewards] = await Promise.all([
+      api('listarDriverBonuses'),
+      api('listarDriverMetrics'),
+      api('listarLoyaltyRewards')
+    ]);
+    const bonos = rBonos.ok ? rBonos.data : [];
+    const metricas = rMetros.ok ? rMetros.data : [];
+    const rewards = rRewards.ok ? rRewards.data : [];
+
+    const nivelCls = (n) => {
+      const nn = String(n || '').toUpperCase();
+      if (nn === 'ORO') return 'mrd-badge-confirmada';
+      if (nn === 'PLATA') return 'mrd-badge-pendiente';
+      return 'mrd-badge-info';
+    };
+
+    renderTabla('tablaBonosConductor', [
+      { titulo: 'Conductor', clave: 'conductorNombre' },
+      { titulo: 'Tipo', clave: 'tipoBono' },
+      { titulo: 'Monto', fn: (b) => mrd(b.monto) },
+      { titulo: 'Estado', fn: (b) => badgePago(b.estado) },
+      { titulo: 'Pagado', fn: (b) => (b.pagado ? '<span class="mrd-badge mrd-badge-confirmada">Sí</span>' : '<span class="mrd-badge mrd-badge-pendiente">No</span>') },
+      { titulo: '', fn: (b) => {
+        const acc = [];
+        if (String(b.estado).toUpperCase() === 'PENDIENTE') {
+          acc.push('<button class="btn btn-xs btn-outline-primary mrd-aprobar-bono" data-id="' + escapeHtml(b.id) + '"><i class="bi bi-check-lg"></i> Aprobar</button>');
+        }
+        if (String(b.estado).toUpperCase() === 'APROBADO' && !b.pagado) {
+          acc.push('<button class="btn btn-xs btn-outline-success mrd-pagar-bono" data-id="' + escapeHtml(b.id) + '"><i class="bi bi-credit-card"></i> Pagar</button>');
+        }
+        return acc.join(' ');
+      } }
+    ], bonos, 'Sin bonos registrados');
+
+    renderTabla('tablaMetricasConductor', [
+      { titulo: 'Conductor', clave: 'conductorNombre' },
+      { titulo: 'Viajes', clave: 'viajesCompletados' },
+      { titulo: 'Puntualidad', fn: (m) => m.puntualidadPct + '%' },
+      { titulo: 'Satisfacción', fn: (m) => m.satisfaccionPct + '%' },
+      { titulo: 'Puntaje', clave: 'puntajeTotal' },
+      { titulo: 'Nivel', fn: (m) => '<span class="mrd-badge ' + escapeHtml(nivelCls(m.nivel)) + '">' + escapeHtml(m.nivel) + '</span>' }
+    ], metricas, 'Sin métricas registradas');
+
+    renderTabla('tablaRewards', [
+      { titulo: 'Código', clave: 'codigo' },
+      { titulo: 'Nombre', clave: 'nombre' },
+      { titulo: 'Tipo', clave: 'tipoDescuento' },
+      { titulo: 'Valor', fn: (r) => r.tipoDescuento === 'PORCENTAJE' ? r.valorDescuento + '%' : 'RD$ ' + mrd(r.valorDescuento) },
+      { titulo: 'Usos', fn: (r) => r.usosActuales + '/' + r.usosMaximos },
+      { titulo: 'Activa', fn: (r) => (r.activa ? '<span class="mrd-badge mrd-badge-confirmada">Sí</span>' : '<span class="mrd-badge mrd-badge-cancelada">No</span>') }
+    ], rewards, 'Sin códigos promocionales');
   }
 
   // ───────────── Reportes (Fase 8) ─────────────
@@ -757,6 +961,7 @@
 
   // Despacho
   $('#despachoConductor').addEventListener('change', actualizarVehiculosDespacho);
+  $('#despachoVehiculo').addEventListener('change', actualizarValidacionDespacho);
   $('#btnAsignarViaje').addEventListener('click', asignarViaje);
 
   // Pagos
@@ -775,6 +980,167 @@
     ok.classList.remove('d-none');
     ev.target.reset();
     cargarPagos();
+  });
+
+  // Iniciar abono (COTIZADA → PENDIENTE_PAGO)
+  $('#formIniciarPago').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#ipError'), ok = $('#ipExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('iniciarPagoReserva', {
+      codigoReserva: $('#ipCodigo').value.trim(),
+      opcionPago: $('#ipOpcion').value
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Abono iniciado: ' + (r.data && r.data.datos ? ('RD$ ' + r.data.datos.anticipo + ' de ' + r.data.datos.total + ' · saldo ' + r.data.datos.saldo) : 'OK');
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    cargarPagos(); cargarReservas();
+  });
+
+  // Generar arqueo de conciliación
+  $('#formGenerarConciliacion').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#ccError'), ok = $('#ccExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('generarConciliacionDiaria', {
+      fecha: $('#ccFecha').value.trim()
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Arqueo generado: Reservado ' + mrd(r.data.totalReservado) + ' · Confirmado ' + mrd(r.data.totalConfirmado) + ' · Diferencia ' + mrd(r.data.diferencia) + ' · Estado: ' + r.data.estado;
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    cargarConciliaciones();
+  });
+
+  // Cerrar arqueo (CUADRADA o DIFERENCIA_RESUELTA)
+  $('#listaConciliaciones').addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.mrd-cerrar-conciliacion');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const diferencia = Number(btn.dataset.diferencia || 0);
+    let estado = 'CUADRADA';
+    if (diferencia !== 0) {
+      const motivo = window.prompt('Este arqueo tiene diferencia (' + mrd(diferencia) + '). ¿Cerrar como DIFERENCIA_RESUELTA? Indique motivo:');
+      if (!motivo) return;
+      estado = 'DIFERENCIA_RESUELTA';
+    } else {
+      if (!window.confirm('¿Cerrar arqueo como CUADRADA?')) return;
+    }
+    btn.disabled = true;
+    const r = await api('cerrarConciliacion', { id: id, estado: estado, motivo: motivo || '' });
+    btn.disabled = false;
+    if (!r.ok) { window.alert(r.error || 'No se pudo cerrar el arqueo.'); return; }
+    cargarConciliaciones();
+  });
+
+  // Verificar abono (PENDIENTE_PAGO → CONFIRMADA si cubre)
+  $('#formVerificarAbono').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#vaError'), ok = $('#vaExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('verificarAbonoReserva', {
+      codigoReserva: $('#vaCodigo').value.trim(),
+      monto: $('#vaMonto').value,
+      referencia: $('#vaReferencia').value.trim(),
+      metodo: $('#vaMetodo').value,
+      referenciaTx: $('#vaReferenciaTx').value.trim()
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Abono verificado. Reserva: ' + r.data.codigo + ' · Total: ' + mrd(r.data.total) + ' · Saldo: ' + mrd(r.data.saldoPendiente);
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    cargarPagos(); cargarReservas();
+  });
+
+  // Pagar saldo (CONFIRMADA con saldo > 0 → sin saldo)
+  $('#formPagarSaldo').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#psError'), ok = $('#psExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('pagarSaldoReserva', {
+      codigoReserva: $('#psCodigo').value.trim(),
+      monto: $('#psMonto').value,
+      referencia: $('#psReferencia').value.trim(),
+      metodo: $('#psMetodo').value
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Saldo pagado. Reserva: ' + r.data.codigo + ' · saldo pendiente: ' + mrd(r.data.saldoPendiente);
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    cargarPagos(); cargarReservas();
+  });
+
+  // Registrar reembolso
+  $('#formReembolso').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#rfError'), ok = $('#rfExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('registrarReembolso', {
+      codigoReserva: $('#rfCodigo').value.trim(),
+      monto: $('#rfMonto').value,
+      motivo: $('#rfMotivo').value.trim(),
+      aprobar: $('#rfAprobar').checked ? 'TRUE' : 'FALSE'
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Reembolso registrado: ' + mrd(r.data.monto) + ' · estado: ' + r.data.estado;
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    cargarPagos(); cargarReservas();
+  });
+
+  // ── Centro de Seguridad (Antifraude) ──
+  // Ejecutar motor antifraude
+  $('#btnEjecutarMotorFraude').addEventListener('click', async () => {
+    const btn = ev.target.closest('#btnEjecutarMotorFraude');
+    btn.disabled = true;
+    const r = await api('ejecutarMotorFraude', {});
+    btn.disabled = false;
+    if (!r.ok) { window.alert(r.error || 'No se pudo ejecutar el motor.'); return; }
+    window.alert('Motor ejecutado. Alertas generadas: ' + r.data.alertasGeneradas + ' · Reglas: ' + r.data.reglasEvaluadas);
+    cargarCentroSeguridad();
+  });
+
+  // Revisar alerta (abrir observaciones)
+  $('#listaAlertasFraude').addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.mrd-revisar-alerta');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const observaciones = window.prompt('Indique sus observaciones sobre esta alerta:');
+    if (!observaciones) return;
+    btn.disabled = true;
+    const r = await api('revisarAlerta', { id: id, observaciones: observaciones });
+    btn.disabled = false;
+    if (!r.ok) { window.alert(r.error || 'No se pudo revisar la alerta.'); return; }
+    cargarCentroSeguridad();
+  });
+
+  // Crear caso desde alerta
+  $('#listaAlertasFraude').addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.mrd-crear-caso');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const tipoCaso = window.prompt('Tipo de caso (INVESTIGACION, AMENAZA, FRAUDE_CONFIRMADO):', 'INVESTIGACION');
+    if (!tipoCaso) return;
+    const prioridad = window.prompt('Prioridad (BAJA, MEDIA, ALTA, CRITICA):', 'MEDIA');
+    if (!prioridad) return;
+    const asignadoA = window.prompt('Asignar a (usuario o dejar vacío):', '');
+    btn.disabled = true;
+    const r = await api('crearCasoFraude', { alertaId: id, tipoCaso: tipoCaso, prioridad: prioridad, asignadoA: asignadoA });
+    btn.disabled = false;
+    if (!r.ok) { window.alert(r.error || 'No se pudo crear el caso.'); return; }
+    window.alert('Caso creado: ' + r.data.id);
+    cargarCentroSeguridad();
   });
 
   // Gastos
@@ -836,6 +1202,93 @@
   $('#btnNuevaTarifa').addEventListener('click', () => abrirModalTarifa(null));
   $('#tfTipo').addEventListener('change', actualizarCajasTipoTarifa);
   $('#tfGuardar').addEventListener('click', guardarTarifa);
+
+  // ── Fidelización y Bonos ──
+  // Crear bono de conductor
+  $('#formCrearBono').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#cbError'), ok = $('#cbExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('crearDriverBonus', {
+      conductorId: $('#cbConductor').value.trim(),
+      tipoBono: $('#cbTipo').value,
+      monto: $('#cbMonto').value,
+      periodoDesde: $('#cbDesde').value.trim(),
+      periodoHasta: $('#cbHasta').value.trim(),
+      motivo: $('#cbMotivo').value.trim()
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Bono creado: ' + r.data.id;
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    cargarFidelizacion();
+  });
+
+  // Aprobar bono
+  $('#tablaBonosConductor').addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.mrd-aprobar-bono');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (!window.confirm('¿Aprobar este bono?')) return;
+    btn.disabled = true;
+    const r = await api('aprobarDriverBonus', { id: id });
+    btn.disabled = false;
+    if (!r.ok) { window.alert(r.error || 'No se pudo aprobar el bono.'); return; }
+    cargarFidelizacion();
+  });
+
+  // Pagar bono
+  $('#tablaBonosConductor').addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.mrd-pagar-bono');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (!window.confirm('¿Marcar este bono como pagado?')) return;
+    btn.disabled = true;
+    const r = await api('pagarDriverBonus', { id: id });
+    btn.disabled = false;
+    if (!r.ok) { window.alert(r.error || 'No se pudo pagar el bono.'); return; }
+    cargarFidelizacion();
+  });
+
+  // Crear código promocional
+  $('#formCrearReward').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#crError'), ok = $('#crExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('crearLoyaltyReward', {
+      codigoPromocional: $('#crCodigo').value.trim(),
+      nombre: $('#crNombre').value.trim(),
+      descripcion: $('#crDescripcion').value.trim(),
+      tipoDescuento: $('#crTipo').value,
+      valorDescuento: $('#crValor').value,
+      montoMinimo: $('#crMinimo').value,
+      vigenciaDesde: $('#crDesde').value.trim(),
+      vigenciaHasta: $('#crHasta').value.trim(),
+      usosMaximos: $('#crMaximos').value,
+      notas: $('#crNotas').value.trim()
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Código promocional creado: ' + r.data.codigo;
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    cargarFidelizacion();
+  });
+
+  // Calcular métricas de conductor
+  $('#btnCalcularMetricas').addEventListener('click', async () => {
+    const btn = $('#btnCalcularMetricas'); btn.disabled = true;
+    const conductorId = $('#cbConductorMetrica').value.trim();
+    if (!conductorId) { btn.disabled = false; return window.alert('Selecciona un conductor.'); }
+    const r = await api('calcularDriverMetrics', { conductorId: conductorId });
+    btn.disabled = false;
+    if (!r.ok) { window.alert(r.error || 'No se pudieron calcular las métricas.'); return; }
+    window.alert('Métricas calculadas: Puntaje ' + r.data.puntaje + ' · Nivel ' + r.data.nivel + ' · Viajes: ' + r.data.viajesCompletados);
+    cargarFidelizacion();
+  });
 
   // ───────────── Login / sesión ─────────────
   const vistaLogin = $('#vistaLogin');
