@@ -26,6 +26,7 @@
     { id: 'reservaciones', icono: 'bi-calendar2-check', texto: 'Reservaciones' },
     { id: 'viajes', icono: 'bi-signpost-split', texto: 'Viajes' },
     { id: 'conductores', icono: 'bi-person-badge', texto: 'Conductores' },
+    { id: 'areaConductor', icono: 'bi-person-workspace', texto: 'Área del conductor', enlace: 'conductor.html' },
     { id: 'vehiculos', icono: 'bi-car-front', texto: 'Vehículos' },
     { id: 'clientes', icono: 'bi-people', texto: 'Clientes' },
     { id: 'tarifas', icono: 'bi-cash-coin', texto: 'Tarifas' },
@@ -949,11 +950,15 @@
 
   // ───────────── Menú y arranque ─────────────
   const menuNav = $('#menuLateral');
-  menuNav.innerHTML = MENU.map((m) => '<a class="mrd-side-link" href="#" data-seccion="' + m.id + '"><i class="bi ' + m.icono + '"></i>' + m.texto + '</a>').join('');
+  menuNav.innerHTML = MENU.map((m) =>
+    '<a class="mrd-side-link" href="' + (m.enlace || '#') + '"' +
+    (m.enlace ? ' data-enlace="' + m.enlace + '"' : ' data-seccion="' + m.id + '"') +
+    '><i class="bi ' + m.icono + '"></i>' + m.texto + '</a>').join('');
   menuNav.addEventListener('click', (ev) => {
     const a = ev.target.closest('.mrd-side-link');
     if (!a) return;
     ev.preventDefault();
+    if (a.dataset.enlace) { window.location.href = a.dataset.enlace; return; }
     mostrarSeccion(a.dataset.seccion);
   });
   $('#btnAbrirMenu').addEventListener('click', () => $('#barraLateral').classList.toggle('abierto'));
@@ -1363,21 +1368,74 @@
     verificarServidor();
   }
 
+  // ── Login práctico: ver contraseña · recordar correo · recuperar clave ──
+  (function prellenarCorreo() {
+    const guardado = window.MRD_AUTH && window.MRD_AUTH.emailRecordado ? window.MRD_AUTH.emailRecordado() : '';
+    if (guardado) {
+      $('#loginEmail').value = guardado;
+      $('#chkRecordarCorreo').checked = true;
+      $('#loginPass').focus();
+    }
+  })();
+
+  $('#btnVerPass').addEventListener('click', () => {
+    const input = $('#loginPass');
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    $('#btnVerPass').innerHTML = visible ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+    $('#btnVerPass').setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+
+  $('#lnkOlvidePass').addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    const err = $('#loginError');
+    const aviso = $('#loginAviso');
+    err.classList.add('d-none');
+    aviso.classList.add('d-none');
+    const email = $('#loginEmail').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      err.textContent = 'Escribe tu correo arriba para recibir el enlace de recuperación.';
+      err.classList.remove('d-none');
+      $('#loginEmail').focus();
+      return;
+    }
+    const enlace = ev.currentTarget;
+    const textoOriginal = enlace.textContent;
+    enlace.textContent = 'Enviando…';
+    try {
+      await window.MRD_AUTH.recuperarPassword(email);
+      aviso.textContent = 'Listo. Si existe una cuenta con ese correo, recibirás un mensaje para crear una nueva contraseña.';
+      aviso.classList.remove('d-none');
+    } catch (e) {
+      err.textContent = window.MRD_AUTH.mensajeErrorFirebase(e);
+      err.classList.remove('d-none');
+    } finally {
+      enlace.textContent = textoOriginal;
+    }
+  });
+
   $('#formLogin').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const btn = $('#btnLogin');
     const err = $('#loginError');
+    const aviso = $('#loginAviso');
     err.classList.add('d-none');
+    aviso.classList.add('d-none');
+    const email = $('#loginEmail').value.trim();
+    if (window.MRD_AUTH) {
+      if ($('#chkRecordarCorreo').checked) window.MRD_AUTH.recordarEmail(email);
+      else window.MRD_AUTH.olvidarEmail();
+    }
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verificando…';
     try {
-      await window.MRD_AUTH.iniciarSesion($('#loginEmail').value.trim(), $('#loginPass').value);
+      await window.MRD_AUTH.iniciarSesion(email, $('#loginPass').value);
       const ctx = await api('obtenerContexto', {});
       if (!ctx.ok) throw new Error(ctx.error || 'No autorizado en el panel.');
       if (ctx.data.rol !== 'SUPERADMIN' && ctx.data.rol !== 'ADMIN') throw new Error('Este acceso es solo para administradores. Usa el portal de conductores.');
       entrarPanel(ctx.data);
     } catch (e) {
-      err.textContent = e.message || 'No se pudo iniciar sesión.';
+      err.textContent = window.MRD_AUTH.mensajeErrorFirebase(e) || 'No se pudo iniciar sesión.';
       err.classList.remove('d-none');
     } finally {
       btn.disabled = false;

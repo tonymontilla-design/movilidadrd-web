@@ -15,6 +15,9 @@
   const vistaLogin = $('#vistaLogin');
   const vistaPortal = $('#vistaPortal');
   let viajesActuales = [];
+  // Admin entrando al área del conductor: elige qué conductor ver/operar.
+  let esAdmin = false;
+  let conductorSeleccionado = '';
 
   const idToken = () => window.MRD_AUTH.obtenerIdToken();
   async function api(accion, payload) {
@@ -22,10 +25,39 @@
   }
 
   async function mostrarPortal(ctx) {
+    esAdmin = ctx.rol === 'SUPERADMIN' || ctx.rol === 'ADMIN';
     $('#nombreConductor').textContent = ctx.nombre || 'Conductor';
     vistaLogin.classList.add('d-none');
     vistaPortal.classList.remove('d-none');
+    if (esAdmin) await cargarSelectorConductores(ctx);
+    else conductorSeleccionado = ctx.conductorId || '';
     await cargarViajes();
+  }
+
+  /** El admin siempre indica sobre qué conductor opera; el conductor real nunca (usa el suyo). */
+  function payloadConductor(extra) {
+    const p = Object.assign({}, extra || {});
+    if (esAdmin && conductorSeleccionado) p.conductorId = conductorSeleccionado;
+    return p;
+  }
+
+  /** Selector de conductor (solo visible para admin). */
+  async function cargarSelectorConductores(ctx) {
+    const barra = $('#barraSelectorConductor');
+    const sel = $('#selConductor');
+    if (!barra || !sel) return;
+    barra.classList.remove('d-none');
+    const r = await api('listarConductores', {});
+    const lista = (r.ok && Array.isArray(r.data))
+      ? r.data.filter((c) => String(c.estado || '').toUpperCase() === 'ACTIVO')
+      : [];
+    sel.innerHTML = lista.length
+      ? lista.map((c) => '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.codigo + ' — ' + c.nombre) + '</option>').join('')
+      : '<option value="">— Sin conductores activos —</option>';
+    conductorSeleccionado = lista.length ? lista[0].id : '';
+    sel.value = conductorSeleccionado;
+    $('#nombreConductor').textContent = (ctx.nombre || 'Administrador') + ' · viendo el área de conductores';
+    sel.onchange = async () => { conductorSeleccionado = sel.value; await cargarViajes(); };
   }
 
   function accionesPorEstado(v) {
@@ -109,7 +141,7 @@
     const lista = $('#listaViajes');
     const vacio = $('#sinViajes');
     lista.innerHTML = '<div class="text-center py-4"><div class="mrd-spinner mx-auto"></div></div>';
-    const r = await api('misViajes', {});
+    const r = await api('misViajes', payloadConductor());
     lista.innerHTML = '';
     if (r.ok && Array.isArray(r.data)) {
       viajesActuales = r.data;
@@ -132,17 +164,17 @@
     const accion = btn.dataset.accion;
     btn.disabled = true;
     let r;
-    if (accion === 'aceptar') r = await api('aceptarViaje', { viajeId });
+    if (accion === 'aceptar') r = await api('aceptarViaje', payloadConductor({ viajeId }));
     else if (accion === 'rechazar') {
       const motivo = window.prompt('Motivo del rechazo (obligatorio):');
       if (!motivo) { btn.disabled = false; return; }
-      r = await api('rechazarViaje', { viajeId, motivo: motivo.trim() });
+      r = await api('rechazarViaje', payloadConductor({ viajeId, motivo: motivo.trim() }));
     } else if (accion === 'incidencia') {
       const texto = window.prompt('Describe la incidencia:');
       if (!texto) { btn.disabled = false; return; }
-      r = await api('reportarIncidencia', { viajeId, texto: texto.trim() });
+      r = await api('reportarIncidencia', payloadConductor({ viajeId, texto: texto.trim() }));
     } else if (accion === 'solicitarOTP') {
-      r = await api('generarOTPRecogida', { viajeId });
+      r = await api('generarOTPRecogida', payloadConductor({ viajeId }));
       if (r.ok) {
         window.alert('Código OTP generado. Comuníqueselo al cliente por canal oficial de MovilidadRD (ej. WhatsApp del negocio). Código: ' + r.data.otp);
       }
@@ -150,8 +182,8 @@
       const inp = $('#otpCodigo_' + escapeHtml(viajeId));
       const codigo = (inp ? inp.value : '') || '';
       if (!codigo) { btn.disabled = false; return window.alert('Indica el código OTP de 6 dígitos.'); }
-      r = await api('validarOTPRecogida', { viajeId, codigo: codigo.trim() });
-    } else r = await api('actualizarEstadoViaje', { viajeId, nuevoEstado: accion });
+      r = await api('validarOTPRecogida', payloadConductor({ viajeId, codigo: codigo.trim() }));
+    } else r = await api('actualizarEstadoViaje', payloadConductor({ viajeId, nuevoEstado: accion }));
     btn.disabled = false;
     if (r && !r.ok) window.alert(r.error || 'No se pudo completar la acción.');
     await cargarViajes();
@@ -159,21 +191,77 @@
 
   $('#btnRefrescar').addEventListener('click', cargarViajes);
 
+  // ── Login práctico: ver contraseña · recordar correo · recuperar clave ──
+  (function prellenarCorreo() {
+    const guardado = window.MRD_AUTH && window.MRD_AUTH.emailRecordado ? window.MRD_AUTH.emailRecordado() : '';
+    if (guardado) {
+      $('#loginEmail').value = guardado;
+      $('#chkRecordarCorreo').checked = true;
+      $('#loginPass').focus();
+    }
+  })();
+
+  $('#btnVerPass').addEventListener('click', () => {
+    const input = $('#loginPass');
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    $('#btnVerPass').innerHTML = visible ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+    $('#btnVerPass').setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+
+  $('#lnkOlvidePass').addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    const err = $('#loginError');
+    const aviso = $('#loginAviso');
+    err.classList.add('d-none');
+    aviso.classList.add('d-none');
+    const email = $('#loginEmail').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      err.textContent = 'Escribe tu correo arriba para recibir el enlace de recuperación.';
+      err.classList.remove('d-none');
+      $('#loginEmail').focus();
+      return;
+    }
+    const enlace = ev.currentTarget;
+    const textoOriginal = enlace.textContent;
+    enlace.textContent = 'Enviando…';
+    try {
+      await window.MRD_AUTH.recuperarPassword(email);
+      aviso.textContent = 'Listo. Si existe una cuenta con ese correo, recibirás un mensaje para crear una nueva contraseña.';
+      aviso.classList.remove('d-none');
+    } catch (e) {
+      err.textContent = window.MRD_AUTH.mensajeErrorFirebase(e);
+      err.classList.remove('d-none');
+    } finally {
+      enlace.textContent = textoOriginal;
+    }
+  });
+
   $('#formLogin').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const btn = $('#btnLogin');
     const err = $('#loginError');
+    const aviso = $('#loginAviso');
     err.classList.add('d-none');
+    aviso.classList.add('d-none');
+    const email = $('#loginEmail').value.trim();
+    if (window.MRD_AUTH) {
+      if ($('#chkRecordarCorreo').checked) window.MRD_AUTH.recordarEmail(email);
+      else window.MRD_AUTH.olvidarEmail();
+    }
     btn.disabled = true;
     try {
-      await window.MRD_AUTH.iniciarSesion($('#loginEmail').value.trim(), $('#loginPass').value);
+      await window.MRD_AUTH.iniciarSesion(email, $('#loginPass').value);
       const ctx = await api('obtenerContexto', {});
       if (!ctx.ok) throw new Error(ctx.error || 'No autorizado.');
-      if (ctx.data.rol !== 'CONDUCTOR') throw new Error('Este acceso es solo para conductores. Los administradores usan el panel.');
-      if (!ctx.data.conductorId) throw new Error('Tu usuario no está vinculado a un conductor. Contacta a administración.');
+      const rol = String(ctx.data.rol || '').toUpperCase();
+      if (rol !== 'CONDUCTOR' && rol !== 'ADMIN' && rol !== 'SUPERADMIN') {
+        throw new Error('Este acceso es solo para conductores y administradores.');
+      }
+      if (rol === 'CONDUCTOR' && !ctx.data.conductorId) throw new Error('Tu usuario no está vinculado a un conductor. Contacta a administración.');
       await mostrarPortal(ctx.data);
     } catch (e) {
-      err.textContent = e.message || 'No se pudo iniciar sesión.';
+      err.textContent = window.MRD_AUTH.mensajeErrorFirebase(e) || 'No se pudo iniciar sesión.';
       err.classList.remove('d-none');
     } finally {
       btn.disabled = false;
@@ -190,7 +278,11 @@
       if (!user) return;
       try {
         const ctx = await api('obtenerContexto', {});
-        if (ctx.ok && ctx.data.rol === 'CONDUCTOR' && ctx.data.conductorId) await mostrarPortal(ctx.data);
+        if (!ctx.ok) return;
+        const rol = String(ctx.data.rol || '').toUpperCase();
+        const permitido = rol === 'CONDUCTOR' || rol === 'ADMIN' || rol === 'SUPERADMIN';
+        const vinculado = rol !== 'CONDUCTOR' || !!ctx.data.conductorId;
+        if (permitido && vinculado) await mostrarPortal(ctx.data);
       } catch (e) { /* mostrar login */ }
     }).catch(() => { /* Firebase sin configurar: mostrar login */ });
   }

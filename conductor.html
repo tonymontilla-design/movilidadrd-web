@@ -29,8 +29,19 @@
       <label class="form-label" for="loginEmail">Correo</label>
       <input class="form-control mb-3" id="loginEmail" type="email" required autocomplete="username" inputmode="email" placeholder="conductor@movilidadrd.com">
       <label class="form-label" for="loginPass">Contraseña</label>
-      <input class="form-control mb-3" id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••••">
+      <div class="position-relative">
+        <input class="form-control" id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••••" style="padding-right:2.75rem;">
+        <button type="button" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted text-decoration-none p-0 me-2" id="btnVerPass" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2 mb-3 small">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="chkRecordarCorreo">
+          <label class="form-check-label text-muted" for="chkRecordarCorreo">Recordar mi correo</label>
+        </div>
+        <a href="#" class="text-decoration-none" id="lnkOlvidePass">¿Olvidaste tu contraseña?</a>
+      </div>
       <button type="submit" class="btn btn-mrd w-100 py-2" id="btnLogin"><i class="bi bi-box-arrow-in-right me-1"></i>Entrar</button>
+      <div class="alert alert-success d-none mt-3 mb-0 small" id="loginAviso" role="status"></div>
       <div class="alert alert-danger d-none mt-3 mb-0 small" id="loginError" role="alert"></div>
     </form>
     <a href="index.html" class="d-block text-center small mt-4 text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al sitio público</a>
@@ -39,6 +50,14 @@
 
 <!-- ══════════ PORTAL ══════════ -->
 <div id="vistaPortal" class="d-none" style="min-height:100vh; background:var(--mrd-gris-claro);">
+  <!-- Solo para administradores: eligen qué conductor ver/operar -->
+  <div id="barraSelectorConductor" class="d-none px-3 py-2" style="background:#1f1f1f; border-bottom:1px solid #2e2e2e;">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <label class="small mb-0" style="color:#C6A56B;" for="selConductor">Área de:</label>
+      <select class="form-select form-select-sm" id="selConductor" style="max-width:340px;" aria-label="Elegir conductor"></select>
+      <a href="admin.html" class="btn btn-outline-light btn-sm ms-auto"><i class="bi bi-arrow-left me-1"></i>Volver al panel</a>
+    </div>
+  </div>
   <header class="d-flex align-items-center justify-content-between px-3 py-2" style="background:#151515; position:sticky; top:0; z-index:10;">
     <div class="d-flex align-items-center gap-2">
       <img src="assets/icons/icon.svg" alt="" width="34" height="34">

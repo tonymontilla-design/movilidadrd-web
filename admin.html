@@ -29,8 +29,19 @@
       <label class="form-label" for="loginEmail">Correo</label>
       <input class="form-control mb-3" id="loginEmail" type="email" required autocomplete="username" placeholder="admin@movilidadrd.com">
       <label class="form-label" for="loginPass">Contraseña</label>
-      <input class="form-control mb-3" id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••••">
+      <div class="position-relative">
+        <input class="form-control" id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••••" style="padding-right:2.75rem;">
+        <button type="button" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted text-decoration-none p-0 me-2" id="btnVerPass" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2 mb-3 small">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="chkRecordarCorreo">
+          <label class="form-check-label text-muted" for="chkRecordarCorreo">Recordar mi correo</label>
+        </div>
+        <a href="#" class="text-decoration-none" id="lnkOlvidePass">¿Olvidaste tu contraseña?</a>
+      </div>
       <button type="submit" class="btn btn-mrd w-100" id="btnLogin"><i class="bi bi-box-arrow-in-right me-1"></i>Entrar</button>
+      <div class="alert alert-success d-none mt-3 mb-0 small" id="loginAviso" role="status"></div>
       <div class="alert alert-danger d-none mt-3 mb-0 small" id="loginError" role="alert"></div>
     </form>
     <a href="index.html" class="d-block text-center small mt-4 text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al sitio público</a>
