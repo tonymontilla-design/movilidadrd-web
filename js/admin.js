@@ -884,10 +884,68 @@
       { titulo: 'Correo', clave: 'email' },
       { titulo: 'Rol', fn: (u) => '<select class="form-select form-select-sm mrd-rol-usuario" data-id="' + escapeHtml(u.id) + '" data-conductor="' + escapeHtml(u.conductorId) + '" style="min-width:120px">' + ['SUPERADMIN', 'ADMIN', 'CONDUCTOR'].map((s) => '<option' + (u.rol === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
       { titulo: 'Conductor vinculado', fn: (u) => escapeHtml(u.conductorNombre || '—') },
-      { titulo: 'Activo', fn: (u) => '<select class="form-select form-select-sm mrd-activo-usuario" data-id="' + escapeHtml(u.id) + '" style="min-width:80px">' + ['TRUE', 'FALSE'].map((s) => '<option' + ((u.activo ? 'TRUE' : 'FALSE') === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' }
+      { titulo: 'Activo', fn: (u) => '<select class="form-select form-select-sm mrd-activo-usuario" data-id="' + escapeHtml(u.id) + '" style="min-width:80px">' + ['TRUE', 'FALSE'].map((s) => '<option' + ((u.activo ? 'TRUE' : 'FALSE') === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' },
+      { titulo: 'Contraseña', fn: (u) => '<button type="button" class="btn btn-sm btn-outline-light mrd-reenviar-recuperacion" data-id="' + escapeHtml(u.id) + '" data-email="' + escapeHtml(u.email) + '" title="Enviar el correo Restablecer contraseña"><i class="bi bi-envelope me-1"></i>Reenviar</button>' }
     ], r.ok ? r.data : [], r.ok ? 'Sin usuarios' : ('Error: ' + r.error));
     if (r.ok) $('#totalUsuarios').textContent = String(r.data.length);
   }
+
+  // Cambios en la tabla de usuarios (delegación: la tabla se re-renderiza en cada carga)
+  document.addEventListener('change', async (ev) => {
+    const rolSel = ev.target.closest('.mrd-rol-usuario');
+    if (rolSel) {
+      const rol = rolSel.value;
+      const conductorId = rolSel.dataset.conductor || '';
+      if (rol === 'CONDUCTOR' && !conductorId) {
+        window.alert('Para el rol CONDUCTOR primero vincula un conductor en el formulario Crear usuario / o edita la fila.');
+        cargarUsuarios(); // re-render para volver al valor anterior
+        return;
+      }
+      const r = await api('actualizarRolUsuario', { id: rolSel.dataset.id, rol, conductorId });
+      if (!r.ok) window.alert(r.error || 'No se pudo cambiar el rol.');
+      cargarUsuarios();
+      return;
+    }
+    const actSel = ev.target.closest('.mrd-activo-usuario');
+    if (actSel) {
+      const r = await api('setUsuarioActivo', { id: actSel.dataset.id, activo: actSel.value });
+      if (!r.ok) window.alert(r.error || 'No se pudo cambiar el estado.');
+      cargarUsuarios();
+    }
+  });
+
+  // Reenviar correo de recuperación de contraseña (nunca se ve ni se guarda la contraseña)
+  document.addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.mrd-reenviar-recuperacion');
+    if (!btn) return;
+    if (!window.confirm('¿Enviar el correo "Restablecer contraseña" a ' + btn.dataset.email + '?')) return;
+    btn.disabled = true;
+    const r = await api('reenviarRecuperacionPassword', { id: btn.dataset.id });
+    btn.disabled = false;
+    if (r.ok) window.alert('Correo enviado a ' + (r.data && r.data.email ? r.data.email : btn.dataset.email) + '. El usuario define su contraseña desde ese enlace.');
+    else window.alert(r.error || 'No se pudo enviar el correo.');
+  });
+
+  // Crear usuario (Fase 9.5 · SUPERADMIN)
+  $('#formCrearUsuario').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#nuError'), ok = $('#nuExito');
+    err.classList.add('d-none'); ok.classList.add('d-none');
+    const btn = ev.target.querySelector('button[type=submit]'); btn.disabled = true;
+    const r = await api('crearUsuario', {
+      nombre: $('#nuNombre').value.trim(),
+      email: $('#nuEmail').value.trim(),
+      rol: $('#nuRol').value,
+      conductorId: $('#nuConductor').value
+    });
+    btn.disabled = false;
+    if (!r.ok) { err.textContent = r.error || 'No se pudo crear el usuario.'; err.classList.remove('d-none'); return; }
+    ok.textContent = 'Usuario creado. Se envió el correo "Restablecer contraseña" a ' + r.data.email + '.';
+    ok.classList.remove('d-none');
+    ev.target.reset();
+    $('#nuConductor').innerHTML = '<option value="">— Sin vincular —</option>';
+    cargarUsuarios();
+  });
 
   // ───────────── Menú y arranque ─────────────
   const menuNav = $('#menuLateral');
