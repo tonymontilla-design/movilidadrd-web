@@ -72,14 +72,57 @@
   const formatearRD = (n) => 'RD$ ' + Number(n).toLocaleString('es-DO', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
   const escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // ── Conversores fecha/hora (date picker + selects 12h AM/PM) ──
+  // Espejo probado en shared/validaciones.js (fechaISOaDMY, hora12a24…)
+  function fechaISOaDMY(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || '').trim());
+    return m ? m[3] + '/' + m[2] + '/' + m[1] : '';
+  }
+  function fechaDMYaISO(dmy) {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(dmy || '').trim());
+    return m ? m[3] + '-' + m[2] + '-' + m[1] : '';
+  }
+  function horaSelectsA24() {
+    const h = Number($('hora').value);
+    const min = Number($('minuto').value);
+    const pm = $('ampm').value === 'PM';
+    if (!h || Number.isNaN(min)) return '';
+    const h24 = (h % 12) + (pm ? 12 : 0);
+    return (h24 < 10 ? '0' : '') + h24 + ':' + (min < 10 ? '0' : '') + min;
+  }
+  function hora24aSelects(hhmm) {
+    const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(hhmm || '').trim());
+    if (!m) return false;
+    $('hora').value = String(Number(m[1]) % 12 || 12);
+    $('minuto').value = m[2];
+    $('ampm').value = Number(m[1]) >= 12 ? 'PM' : 'AM';
+    return true;
+  }
+  function iniciarCampoFechaHora() {
+    const hoy = new Date();
+    const pad = (n) => (n < 10 ? '0' : '') + n;
+    const fecha = $('fecha');
+    if (fecha) fecha.min = hoy.getFullYear() + '-' + pad(hoy.getMonth() + 1) + '-' + pad(hoy.getDate());
+    let hs = '';
+    for (let h = 1; h <= 12; h++) hs += '<option value="' + h + '">' + h + '</option>';
+    $('hora').innerHTML = hs;
+    let ms = '';
+    for (let m = 0; m < 60; m++) ms += '<option value="' + pad(m) + '">' + pad(m) + '</option>';
+    $('minuto').innerHTML = ms;
+    // Hora por defecto: 08:00 AM
+    $('hora').value = '8';
+    $('minuto').value = '00';
+    $('ampm').value = 'AM';
+  }
+
   function validarCliente() {
     const errores = [];
     const tipo = $('tipoServicio').value;
     const categoria = $('categoria').value;
     const origen = $('origen').value.trim();
     const destino = $('destino').value.trim();
-    const fechaRaw = $('fecha').value.trim();
-    const hora = $('hora').value;
+    const fechaRaw = fechaISOaDMY($('fecha').value);
+    const hora = horaSelectsA24();
     const pasajeros = Number($('pasajeros').value);
     const nombre = $('nombreCliente').value.trim();
     const telefono = $('telefono').value.trim();
@@ -92,7 +135,7 @@
 
     const mf = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fechaRaw);
     if (!mf) {
-      errores.push('Fecha inválida. Use DD/MM/AAAA.');
+      errores.push('Selecciona la fecha de recogida.');
     } else {
       const f = new Date(Number(mf[3]), Number(mf[2]) - 1, Number(mf[1]));
       const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -116,6 +159,7 @@
 
   // Envío real de la reserva (el servidor vuelve a validar TODO)
   const form = $('formReserva');
+  iniciarCampoFechaHora();
 
   // Servicio por horas: mostrar/ocultar el campo de horas requeridas
   $('tipoServicio').addEventListener('change', () => {
@@ -144,8 +188,8 @@
       categoria: $('categoria').value,
       origen: $('origen').value.trim(),
       destino: $('destino').value.trim(),
-      fecha: $('fecha').value.trim(),
-      hora: $('hora').value,
+      fecha: fechaISOaDMY($('fecha').value),
+      hora: horaSelectsA24(),
       pasajeros: Number($('pasajeros').value),
       maletas: Number($('maletas').value || 0),
       nombreCliente: $('nombreCliente').value.trim(),
@@ -399,6 +443,24 @@
         const el = $(idForm);
         if (el && c[campoIA] != null && String(c[campoIA]).trim() !== '') {
           const valor = String(c[campoIA]);
+          // Date picker: la IA devuelve DD/MM/AAAA → convertir a AAAA-MM-DD
+          if (campoIA === 'fecha') {
+            const iso = fechaDMYaISO(valor);
+            if (iso) el.value = iso;
+            continue;
+          }
+          // Hora 12h: la IA devuelve HH:MM (24h) o "2:30 PM" → rellenar selects
+          if (campoIA === 'hora') {
+            if (!hora24aSelects(valor)) {
+              const m12 = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(valor);
+              if (m12) {
+                $('hora').value = String(Number(m12[1]) % 12 || 12);
+                $('minuto').value = m12[2];
+                $('ampm').value = m12[3].toUpperCase();
+              }
+            }
+            continue;
+          }
           if (el.tagName === 'SELECT') {
             let encontrado = false;
             for (const opt of el.options) {

@@ -172,12 +172,22 @@ h1, h2, h3, h4, .mrd-display {
 /* ---------- Panel administrativo / conductor ---------- */
 .mrd-layout { min-height: 100vh; background: var(--mrd-gris-claro); }
 .mrd-sidebar {
-  background: var(--mrd-carbon); color: #d7d7d7; min-height: 100vh;
+  background: var(--mrd-carbon); color: #d7d7d7;
+  height: 100vh; height: 100dvh;
   width: 260px; position: fixed; left: 0; top: 0; padding: 1.2rem 0;
   z-index: 1030; transform: translateX(-100%); transition: transform var(--mrd-transicion);
+  display: flex; flex-direction: column; overflow: hidden;
 }
 .mrd-sidebar.abierto { transform: translateX(0); }
-.mrd-sidebar .mrd-logo-side { padding: 0 1.4rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem; }
+.mrd-sidebar .mrd-logo-side { flex: 0 0 auto; padding: 0 1.4rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem; }
+.mrd-sidebar #menuLateral {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: rgba(198,165,107,0.4) transparent;
+}
+.mrd-sidebar #menuLateral::-webkit-scrollbar { width: 6px; }
+.mrd-sidebar #menuLateral::-webkit-scrollbar-track { background: transparent; }
+.mrd-sidebar #menuLateral::-webkit-scrollbar-thumb { background: rgba(198,165,107,0.35); border-radius: 3px; }
+.mrd-sidebar .mrd-side-footer { flex: 0 0 auto; }
 .mrd-sidebar .mrd-logo-side .brand { color: #fff; font-family: Montserrat; font-weight: 800; }
 .mrd-sidebar .mrd-logo-side .brand span { color: var(--mrd-dorado); }
 .mrd-side-link {
@@ -245,8 +255,8 @@ body.sin-conexion .mrd-offline-banner { display: block; }
 :focus-visible { outline: 3px solid var(--mrd-dorado); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
-/* ---------- Tarjeta de asignación / notificación al conductor ----------
-   Inspirada en el patrón "ticket" (marca + estado + horario + ruta),
+/* ---------- Tarjeta de asignaciï¿½n / notificaciï¿½n al conductor ----------
+   Inspirada en el patrï¿½n "ticket" (marca + estado + horario + ruta),
    adaptada a la identidad MovilidadRD. */
 .mrd-asignacion {
   position: relative;
@@ -390,7 +400,7 @@ html { scroll-behavior: smooth; }
   .mrd-whatsapp-flotante { width: 56px; height: 56px; bottom: .9rem; right: .9rem; font-size: 1.5rem; }
   .navbar-brand { font-size: .95rem; }
   h1, h2, .mrd-seccion-titulo { font-size: 1.35rem; }
-  .form-control, .form-select { font-size: 16px; } /* evita zoom automático en iOS */
+  .form-control, .form-select { font-size: 16px; } /* evita zoom automï¿½tico en iOS */
   .mrd-form { padding: 1rem !important; }
 }
 @media (max-width: 360px) {
@@ -399,7 +409,7 @@ html { scroll-behavior: smooth; }
 }
 @media (prefers-reduced-motion: reduce) { .mrd-hero-card, .mrd-card, .mrd-despacho-card { transition: none; } }
 
-/* ---------- Fotografía de marca (Unsplash, licencia libre) ---------- */
+/* ---------- Fotografï¿½a de marca (Unsplash, licencia libre) ---------- */
 .mrd-hero--foto {
   background-image:
     linear-gradient(100deg, rgba(21,21,21,0.95) 0%, rgba(21,21,21,0.86) 52%, rgba(21,21,21,0.62) 100%),

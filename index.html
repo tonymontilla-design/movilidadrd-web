@@ -190,11 +190,15 @@
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label" for="fecha">Fecha *</label>
-              <input class="form-control" id="fecha" type="text" placeholder="DD/MM/AAAA" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}" required>
+              <input class="form-control" id="fecha" type="date" required>
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label" for="hora">Hora *</label>
-              <input class="form-control" id="hora" type="time" required>
+              <div class="row g-1">
+                <div class="col-4"><select class="form-select form-select-sm" id="hora" aria-label="Hora" required></select></div>
+                <div class="col-4"><select class="form-select form-select-sm" id="minuto" aria-label="Minuto" required></select></div>
+                <div class="col-4"><select class="form-select form-select-sm" id="ampm" aria-label="AM o PM" required><option value="AM">AM</option><option value="PM">PM</option></select></div>
+              </div>
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label" for="pasajeros">Pasajeros *</label>
