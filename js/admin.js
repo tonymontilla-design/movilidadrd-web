@@ -364,7 +364,9 @@
 
   function renderInfoSesion() {
     if (!contextoAdmin) return;
-    $('#infoSesion').innerHTML =
+    const cont = $('#infoSesion');
+    if (!cont) return;
+    cont.innerHTML =
       '<dt class="col-sm-4">Nombre</dt><dd class="col-sm-8">' + escapeHtml(contextoAdmin.nombre) + '</dd>' +
       '<dt class="col-sm-4">Email</dt><dd class="col-sm-8">' + escapeHtml(contextoAdmin.email) + '</dd>' +
       '<dt class="col-sm-4">Rol</dt><dd class="col-sm-8">' + escapeHtml(contextoAdmin.rol) + '</dd>';
@@ -1018,7 +1020,7 @@
   });
 
   // Cerrar arqueo (CUADRADA o DIFERENCIA_RESUELTA)
-  $('#listaConciliaciones').addEventListener('click', async (ev) => {
+  $('#tablaConciliaciones')?.addEventListener('click', async (ev) => {
     const btn = ev.target.closest('.mrd-cerrar-conciliacion');
     if (!btn) return;
     const id = btn.dataset.id;
@@ -1112,7 +1114,7 @@
   });
 
   // Revisar alerta (abrir observaciones)
-  $('#listaAlertasFraude').addEventListener('click', async (ev) => {
+  $('#tablaAlertasFraude')?.addEventListener('click', async (ev) => {
     const btn = ev.target.closest('.mrd-revisar-alerta');
     if (!btn) return;
     const id = btn.dataset.id;
@@ -1126,7 +1128,7 @@
   });
 
   // Crear caso desde alerta
-  $('#listaAlertasFraude').addEventListener('click', async (ev) => {
+  $('#tablaAlertasFraude')?.addEventListener('click', async (ev) => {
     const btn = ev.target.closest('.mrd-crear-caso');
     if (!btn) return;
     const id = btn.dataset.id;
