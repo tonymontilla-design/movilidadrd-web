@@ -23,6 +23,11 @@
     let url;
     try { url = config().WEB_APP_URL; } catch (e) { return { ok: false, error: e.message }; }
 
+    // Timeout: sin esto, un cuelgue de red o un arranque en frío de Apps Script
+    // deja al usuario viendo "Enviando…" para siempre.
+    const control = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const reloj = control ? setTimeout(() => control.abort(), 90000) : null;
+
     let respuesta;
     try {
       respuesta = await fetch(url, {
@@ -30,10 +35,19 @@
         // GAS no soporta preflight CORS: content-type text/plain evita el preflight
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action, payload: payload || {}, idToken: idToken || undefined }),
-        redirect: 'follow'
+        redirect: 'follow',
+        signal: control ? control.signal : undefined
       });
     } catch (e) {
+      if (e && e.name === 'AbortError') {
+        return {
+          ok: false,
+          error: 'El servidor está tardando más de lo normal (posible arranque en frío). Es posible que tu solicitud ya se haya recibido: espera unos segundos y consulta "Consultar mi reserva" antes de reintentar.'
+        };
+      }
       return { ok: false, error: 'Sin conexión con el servidor. Verifique su internet e intente nuevamente.' };
+    } finally {
+      if (reloj) clearTimeout(reloj);
     }
 
     let datos;
