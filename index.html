@@ -291,51 +291,7 @@
               </div>
             </div>
           </div>
-          <!-- Panel de pago (PENDIENTE_PAGO): montos, opción elegida e instrucciones -->
-          <div class="row g-3 d-none" id="bloquePago">
-            <div class="col-12">
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="bi bi-credit-card" style="font-size:1.8rem; color:var(--mrd-dorado);"></i>
-                <h3 class="h5 mb-0">Pago de tu reserva</h3>
-              </div>
-              <p class="small text-muted mb-3">Estado de la reserva: <span class="mrd-badge mrd-badge-pendiente" id="pagoEstadoReserva">PENDIENTE_PAGO</span></p>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="small text-muted">Precio del viaje</div>
-                  <div class="fw-bold" style="font-size:1.15rem;" id="pagoTotal">—</div>
-                </div>
-                <div class="col-6">
-                  <div class="small text-muted">Saldo pendiente</div>
-                  <div class="fw-bold" style="font-size:1.15rem;" id="pagoSaldo">—</div>
-                </div>
-              </div>
-
-              <div class="col-12 d-none" id="bloqueOpcionAnticipo">
-                <div class="mrd-form p-3" style="background:var(--mrd-gris-claro);">
-                  <div class="small text-muted">Opción A — Reserva con anticipo</div>
-                  <div class="fw-bold" id="pagoAnticipo">—</div>
-                  <div class="small text-muted mt-1">El anticipo mínimo se descuenta del total y el saldo queda pendiente.</div>
-                </div>
-              </div>
-              <div class="col-12 d-none" id="bloqueOpcionTotal">
-                <div class="mrd-form p-3" style="background:var(--mrd-gris-claro);">
-                  <div class="small text-muted">Opción B — Pago total</div>
-                  <div class="fw-bold" id="pagoTotalCompleto">—</div>
-                  <div class="small text-muted mt-1">Paga el total de la reserva en una sola transferencia.</div>
-                </div>
-              </div>
-
-              <div class="col-12 mt-3">
-                <div class="small text-muted mb-1">Instrucciones de pago</div>
-                <div class="small" id="pagoInstrucciones">—</div>
-              </div>
-
-              <div class="col-12 d-flex flex-wrap gap-2">
-                <button class="btn btn-mrd" id="btnPagarAnticipo" type="button" disabled><i class="bi bi-credit-card me-1"></i> Pagar anticipo y reservar</button>
-                <button class="btn btn-mrd-outline" id="btnPagarTotal" type="button" disabled><i class="bi bi-cash-coin me-1"></i> Pagar viaje completo</button>
-              </div>
-            </div>
-          </div>
+          <!-- Pagos desactivados: el flujo es simple — reserva → PENDIENTE → COTIZADA → admin confirma. -->
           <div class="d-flex flex-wrap gap-2 mt-4">
             <a class="btn btn-success" id="confBtnWhatsApp" href="#" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i> Avisar por WhatsApp</a>
             <button class="btn btn-outline-secondary" id="btnCompartirReserva" type="button"><i class="bi bi-share me-1"></i> Compartir mi viaje</button>

@@ -200,8 +200,7 @@
       observaciones: $('observaciones').value.trim(),
       viajeRegreso: $('viajeRegreso').checked,
       horas: $('tipoServicio').value === 'POR_HORAS' ? Number($('horas').value || 0) : 0,
-      sitioWeb: $('sitioWeb').value,
-      opcionPago: $('opcionPago').value || 'ANTICIPO'
+      sitioWeb: $('sitioWeb').value
     };
 
     const r = await window.MRD_API.llamar('crearReservaPublica', payload, null);
@@ -243,7 +242,7 @@
       $('confBtnWhatsApp').href = d.enlaceWhatsApp || ('https://wa.me/' + numero.replace(/\D/g, '') + '?text=' + encodeURIComponent('Hola MovilidadRD, registré la reserva ' + (d.codigo || '') + '.'));
       panel.scrollIntoView({ behavior: 'smooth' });
 
-      if (d.estado === 'PENDIENTE_PAGO') renderPanelPago(d);
+      // Pagos desactivados: no hay panel de pago.
     } else {
       // Honeypot: respuesta simulada sin datos
       salida.textContent = 'Solicitud recibida.';
@@ -251,73 +250,8 @@
     }
   });
 
-  // ───────────── Panel de pago (PENDIENTE_PAGO) ─────────────
-  let ultimoAbono = null;
-  let ultimoInstrucciones = null;
-
-  function renderPanelPago(d) {
-    const abono = d.abono || {};
-    const total = Number(abono.total) || 0;
-    const anticipo = Number(abono.anticipo) || 0;
-    const saldo = Number(abono.saldo) || 0;
-    const opcion = String(abono.opcion || 'ANTICIPO');
-    ultimoAbono = abono;
-    ultimoInstrucciones = d.instruccionesPago || null;
-
-    if ($('pagoEstadoReserva')) $('pagoEstadoReserva').textContent = d.estado || 'PENDIENTE_PAGO';
-    if ($('pagoTotal')) $('pagoTotal').textContent = formatearRD(total);
-    if ($('pagoSaldo')) $('pagoSaldo').textContent = formatearRD(saldo);
-    if ($('pagoAnticipo')) $('pagoAnticipo').textContent = formatearRD(anticipo);
-    if ($('pagoTotalCompleto')) $('pagoTotalCompleto').textContent = formatearRD(total);
-
-    const bloqAnt = $('bloqueOpcionAnticipo');
-    const bloqTot = $('bloqueOpcionTotal');
-    if (bloqAnt) bloqAnt.classList.toggle('d-none', opcion !== 'ANTICIPO');
-    if (bloqTot) bloqTot.classList.toggle('d-none', opcion !== 'TOTAL');
-    if ($('opcionPagoAnticipo')) $('opcionPagoAnticipo').checked = opcion !== 'TOTAL';
-    if ($('opcionPagoTotal')) $('opcionPagoTotal').checked = opcion === 'TOTAL';
-
-    if ($('pagoInstrucciones')) renderInstruccionesPago(d.instruccionesPago);
-
-    if ($('bloquePago')) $('bloquePago').classList.remove('d-none');
-    const bAnt = $('btnPagarAnticipo');
-    const bTot = $('btnPagarTotal');
-    if (bAnt) bAnt.disabled = false;
-    if (bTot) bTot.disabled = false;
-  }
-
-  function renderInstruccionesPago(instr) {
-    if (!$('pagoInstrucciones')) return;
-    const metodo = (instr && instr.metodo) ? String(instr.metodo) : 'Transferencia bancaria';
-    const banco = (instr && instr.banco) ? String(instr.banco) : '';
-    const cuenta = (instr && instr.cuenta) ? String(instr.cuenta) : '';
-    const titular = (instr && instr.titular) ? String(instr.titular) : '';
-    const referencia = (instr && instr.referencia) ? String(instr.referencia) : '';
-    let html = '<div><i class="bi bi-credit-card text-dorado me-1"></i>' + escapeHtml(metodo) + '</div>';
-    if (banco) html += '<div class="small text-muted mt-1">Banco: ' + escapeHtml(banco) + '</div>';
-    if (cuenta) html += '<div class="small text-muted">Cuenta: ' + escapeHtml(cuenta) + '</div>';
-    if (titular) html += '<div class="small text-muted">Titular: ' + escapeHtml(titular) + '</div>';
-    if (referencia) html += '<div class="small text-muted">Referencia: <code>' + escapeHtml(referencia) + '</code></div>';
-    $('pagoInstrucciones').innerHTML = html;
-  }
-
-  function abrirPagoWhatsApp(opcion) {
-    const abono = ultimoAbono || {};
-    const instr = ultimoInstrucciones || {};
-    const numero = (window.MRD_CONFIG && window.MRD_CONFIG.WHATSAPP_NEGOCIO) || '18096131079';
-    const codigo = $('confCodigo') ? String($('confCodigo').textContent || '').trim() : '';
-    const monto = opcion === 'TOTAL' ? Number(abono.total) || 0 : Number(abono.anticipo) || 0;
-    const mensaje = 'Hola MovilidadRD, quiero pagar mi reserva ' + codigo + ' con MovilidadRD (opcion: ' + opcion + ').' +
-      ' Monto: RD$ ' + monto + '.' +
-      (instr.referencia ? ' Referencia: ' + instr.referencia + '.' : '') +
-      (instr.banco ? ' Banco: ' + instr.banco + '.' : '') +
-      (instr.cuenta ? ' Cuenta: ' + instr.cuenta + '.' : '') +
-      (instr.titular ? ' Titular: ' + instr.titular + '.' : '');
-    window.location.href = 'https://wa.me/' + numero.replace(/\D/g, '') + '?text=' + encodeURIComponent(mensaje);
-  }
-
-  $('btnPagarAnticipo').addEventListener('click', () => { abrirPagoWhatsApp('ANTICIPO'); });
-  $('btnPagarTotal').addEventListener('click', () => { abrirPagoWhatsApp('TOTAL'); });
+  // Pagos desactivados: el flujo es simple — reserva → PENDIENTE → COTIZADA → admin confirma.
+  // No hay panel de pago, no hay link de pago, no hay botones de pago.
 
   // Acciones del panel de confirmación
   $('btnCopiarToken').addEventListener('click', async () => {
