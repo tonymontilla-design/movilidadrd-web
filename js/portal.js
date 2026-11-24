@@ -303,6 +303,7 @@
     }
     const d = r.data;
     const tarifa = (d.tarifaTotal != null) ? formatearRD(d.tarifaTotal) + ' · ' + d.metodoTarifa : 'Cotización pendiente';
+    const puedeAceptar = String(d.estado).toUpperCase() === 'COTIZADA' && d.tarifaTotal != null;
     salida.classList.remove('d-none');
     salida.classList.add('alert-success');
     salida.innerHTML =
@@ -316,7 +317,34 @@
         '<li><i class="bi bi-people text-dorado me-1"></i>' + escapeHtml(d.pasajeros) + ' pasajeros · ' + escapeHtml(d.maletas) + ' maletas · ' + escapeHtml(d.categoriaVehiculo) + '</li>' +
         '<li><i class="bi bi-person text-dorado me-1"></i>' + escapeHtml(d.nombreCliente) + ' · ' + escapeHtml(d.telefonoEnmascarado) + '</li>' +
         '<li><i class="bi bi-cash-coin text-dorado me-1"></i>' + escapeHtml(tarifa) + '</li>' +
-      '</ul>';
+      '</ul>' +
+      (puedeAceptar
+        ? '<div class="d-flex flex-wrap gap-2 mt-3">' +
+            '<button type="button" class="btn btn-mrd btn-sm mrd-aceptar-cotizacion"><i class="bi bi-check2-circle"></i> Aceptar cotización</button>' +
+            '<button type="button" class="btn btn-mrd-outline btn-sm mrd-rechazar-cotizacion"><i class="bi bi-x-circle"></i> No aceptar</button>' +
+          '</div>'
+        : '');
+
+    if (puedeAceptar) {
+      const bAceptar = salida.querySelector('.mrd-aceptar-cotizacion');
+      const bRechazar = salida.querySelector('.mrd-rechazar-cotizacion');
+      const accionCotizacion = async (acepta) => {
+        if (!acepta && !window.confirm('¿Seguro que deseas rechazar la cotización?')) return;
+        if (bAceptar) bAceptar.disabled = true;
+        if (bRechazar) bRechazar.disabled = true;
+        const rr = await window.MRD_API.llamar('aceptarCotizacion', { codigo, token, acepta }, null);
+        if (!rr.ok) {
+          if (bAceptar) bAceptar.disabled = false;
+          if (bRechazar) bRechazar.disabled = false;
+          window.alert(rr.error || 'No se pudo procesar la solicitud.');
+          return;
+        }
+        window.alert((rr.data && rr.data.mensaje) || 'Solicitud procesada.');
+        $('formConsulta').dispatchEvent(new Event('submit', { cancelable: true }));
+      };
+      if (bAceptar) bAceptar.addEventListener('click', () => accionCotizacion(true));
+      if (bRechazar) bRechazar.addEventListener('click', () => accionCotizacion(false));
+    }
   });
 
   // Enlace desde el correo de solicitud: precarga código y token (?codigo=...&token=...#consultar)
